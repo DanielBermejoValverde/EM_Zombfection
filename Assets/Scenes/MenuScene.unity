@@ -1187,7 +1187,7 @@ MonoBehaviour:
   NetworkConfig:
     ProtocolVersion: 0
     NetworkTransport: {fileID: 668863926}
-    PlayerPrefab: {fileID: 1140671082}
+    PlayerPrefab: {fileID: 0}
     Prefabs:
       NetworkPrefabsLists:
       - {fileID: 11400000, guid: cf3d80b812e692d43922ebaf64d4bd15, type: 2}
@@ -1548,11 +1548,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1046058817}
   m_CullTransparentMesh: 1
---- !u!1 &1140671082 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8963865863176993568, guid: 944fd2bb136ae2746b5b986830242e1f, type: 3}
-  m_PrefabInstance: {fileID: 7219280550130579900}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1354406898
 GameObject:
   m_ObjectHideFlags: 0
@@ -2271,71 +2266,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2080616261}
   m_CullTransparentMesh: 1
---- !u!1001 &7219280550130579900
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 5472503393842642354, guid: 944fd2bb136ae2746b5b986830242e1f, type: 3}
-      propertyPath: GlobalObjectIdHash
-      value: 3870376102
-      objectReference: {fileID: 0}
-    - target: {fileID: 5472503393842642354, guid: 944fd2bb136ae2746b5b986830242e1f, type: 3}
-      propertyPath: InScenePlacedSourceGlobalObjectIdHash
-      value: 2746981099
-      objectReference: {fileID: 0}
-    - target: {fileID: 7562969383643656878, guid: 944fd2bb136ae2746b5b986830242e1f, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 339.8858
-      objectReference: {fileID: 0}
-    - target: {fileID: 7562969383643656878, guid: 944fd2bb136ae2746b5b986830242e1f, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 273.8073
-      objectReference: {fileID: 0}
-    - target: {fileID: 7562969383643656878, guid: 944fd2bb136ae2746b5b986830242e1f, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -35.150543
-      objectReference: {fileID: 0}
-    - target: {fileID: 7562969383643656878, guid: 944fd2bb136ae2746b5b986830242e1f, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7562969383643656878, guid: 944fd2bb136ae2746b5b986830242e1f, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7562969383643656878, guid: 944fd2bb136ae2746b5b986830242e1f, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7562969383643656878, guid: 944fd2bb136ae2746b5b986830242e1f, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7562969383643656878, guid: 944fd2bb136ae2746b5b986830242e1f, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7562969383643656878, guid: 944fd2bb136ae2746b5b986830242e1f, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7562969383643656878, guid: 944fd2bb136ae2746b5b986830242e1f, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8963865863176993568, guid: 944fd2bb136ae2746b5b986830242e1f, type: 3}
-      propertyPath: m_Name
-      value: PlayerNetworkObject
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 944fd2bb136ae2746b5b986830242e1f, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -2347,4 +2277,3 @@ SceneRoots:
   - {fileID: 735338617}
   - {fileID: 1420360708}
   - {fileID: 668863928}
-  - {fileID: 7219280550130579900}

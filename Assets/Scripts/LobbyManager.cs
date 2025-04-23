@@ -6,15 +6,13 @@ using UnityEngine.UI;
 
 public class LobbyManager : NetworkBehaviour
 {
-    public static LobbyManager Instance;
-
     private Dictionary<ulong, bool> playerReadyStatus = new();
 
     public GameObject playerLobbyPrefab;
 
     private void Awake()
     {
-        Instance = this;
+        
     }
 
     public override void OnNetworkSpawn()
@@ -46,7 +44,7 @@ public class LobbyManager : NetworkBehaviour
         }
     }
 
-    [ServerRpc(RequireOwnership = false)]
+    [ServerRpc]
     private void SubmitReadyServerRpc(ulong clientId, bool isReady)
     {
         playerReadyStatus[clientId] = isReady;
@@ -70,17 +68,19 @@ public class LobbyManager : NetworkBehaviour
     [ClientRpc]
     private void UpdateLobbyUIClientRpc()
     {
-        // Aquí instancia UI de cada jugador, actualiza nombres y estado listo
-        // Puedes extender esto para usar nombres de jugador
         foreach (Transform child in transform)
         {
             if (child.GetComponent<Button>() != null)
                 continue;
             Destroy(child.gameObject);
         }
+        float posY = 0;
         foreach (var kvp in playerReadyStatus)
         {
-            GameObject playerLobby = Instantiate(playerLobbyPrefab, transform);
+            Transform newTransform = transform;
+            newTransform.position = newTransform.position + new Vector3(0,posY, 0);
+            GameObject playerLobby = Instantiate(playerLobbyPrefab, newTransform);
+            posY -= 30;
             playerLobby.GetComponent<PlayerLobbyManager>().SetInfo("Player " + kvp.Key, kvp.Value);
         }
     }
