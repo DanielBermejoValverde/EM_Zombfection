@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class LobbyManager : NetworkBehaviour
 {
@@ -9,8 +10,7 @@ public class LobbyManager : NetworkBehaviour
 
     private Dictionary<ulong, bool> playerReadyStatus = new();
 
-    public GameObject playerEntryPrefab;
-    public Transform playerListParent;
+    public GameObject playerLobbyPrefab;
 
     private void Awake()
     {
@@ -29,20 +29,20 @@ public class LobbyManager : NetworkBehaviour
     private void OnClientConnected(ulong clientId)
     {
         playerReadyStatus[clientId] = false;
-        UpdateLobbyUI();
+        UpdateLobbyUIClientRpc();
     }
 
     private void OnClientDisconnected(ulong clientId)
     {
         playerReadyStatus.Remove(clientId);
-        UpdateLobbyUI();
+        UpdateLobbyUIClientRpc();
     }
 
-    public void SetPlayerReady(bool isReady)
+    public void SetPlayerReady()
     {
         if (IsClient)
         {
-            SubmitReadyServerRpc(NetworkManager.Singleton.LocalClientId, isReady);
+            SubmitReadyServerRpc(NetworkManager.Singleton.LocalClientId, true);
         }
     }
 
@@ -51,7 +51,7 @@ public class LobbyManager : NetworkBehaviour
     {
         playerReadyStatus[clientId] = isReady;
         CheckReadyState();
-        UpdateLobbyUI();
+        UpdateLobbyUIClientRpc();
     }
 
     private void CheckReadyState()
@@ -62,14 +62,26 @@ public class LobbyManager : NetworkBehaviour
             if (ready) readyCount++;
         }
 
-        if (readyCount >= playerReadyStatus.Count / 2f && playerReadyStatus.Count > 1)
+        if (readyCount == playerReadyStatus.Count)
         {
             SceneManager.LoadScene("GameScene");
         }
     }
-
-    private void UpdateLobbyUI()
+    [ClientRpc]
+    private void UpdateLobbyUIClientRpc()
     {
-        
+        // Aquí instancia UI de cada jugador, actualiza nombres y estado listo
+        // Puedes extender esto para usar nombres de jugador
+        foreach (Transform child in transform)
+        {
+            if (child.GetComponent<Button>() != null)
+                continue;
+            Destroy(child.gameObject);
+        }
+        foreach (var kvp in playerReadyStatus)
+        {
+            GameObject playerLobby = Instantiate(playerLobbyPrefab, transform);
+            playerLobby.GetComponent<PlayerLobbyManager>().SetInfo("Player " + kvp.Key, kvp.Value);
+        }
     }
 }
