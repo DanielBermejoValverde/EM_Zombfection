@@ -1,17 +1,41 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Unity.Netcode;
 
 public class MenuManager : MonoBehaviour
 {
+    public GameObject lobbyUI;
+    public GameObject menuUI;
+
     public void Awake()
     {
-        Time.timeScale = 1f; // Asegúrate de que el tiempo está restaurado al cargar la escena
+        Time.timeScale = 1f; // Asegï¿½rate de que el tiempo estï¿½ restaurado al cargar la escena
+        lobbyUI = GameObject.Find("LobbyUI");
+        menuUI = GameObject.Find("MenuUI");
     }
 
     public void StartGame()
     {
         SceneManager.LoadScene("GameScene"); // Cambia "MainScene" por el nombre de tu escena principal
     }
+
+    
+    public void HostGame()
+    {
+        NetworkManager.Singleton.StartHost();
+        lobbyUI.SetActive(true);
+        menuUI.SetActive(false); 
+        print("Host");
+    }
+
+    public void JoinGame()
+    {
+        NetworkManager.Singleton.StartClient();
+        lobbyUI.SetActive(true);
+        menuUI.SetActive(false); 
+        print("Player");
+    }
+
 
     public void QuitGame()
     {
