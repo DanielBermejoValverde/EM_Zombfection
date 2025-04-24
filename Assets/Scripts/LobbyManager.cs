@@ -99,10 +99,7 @@ public class LobbyManager : NetworkBehaviour
 
         foreach (var player in playerReadyStatus)
         {
-            Transform newTransform = transform;
-            newTransform.position = newTransform.position + new Vector3(0,posY, 0);
-            GameObject playerLobby = Instantiate(playerLobbyPrefab, newTransform);
-            posY -= 30;
+            GameObject playerLobby = Instantiate(playerLobbyPrefab, transform);
             playerLobby.GetComponent<PlayerLobbyManager>().SetInfo("Player " + player.Key, player.Value);
         }
     }
