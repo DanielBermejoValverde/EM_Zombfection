@@ -97,7 +97,6 @@ public class LobbyManager : NetworkBehaviour
             Destroy(child.gameObject);
         }
 
-        float posY = 0;
         foreach (var player in playerReadyStatus)
         {
             Transform newTransform = transform;
