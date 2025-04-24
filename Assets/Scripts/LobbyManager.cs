@@ -70,14 +70,13 @@ public class LobbyManager : NetworkBehaviour
     [ClientRpc]
     private void UpdateLobbyUIClientRpc()
     {
-        // Aquí instancia UI de cada jugador, actualiza nombres y estado listo
-        // Puedes extender esto para usar nombres de jugador
         foreach (Transform child in transform)
         {
             if (child.GetComponent<Button>() != null)
                 continue;
             Destroy(child.gameObject);
         }
+
         foreach (var kvp in playerReadyStatus)
         {
             GameObject playerLobby = Instantiate(playerLobbyPrefab, transform);
