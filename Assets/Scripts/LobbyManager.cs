@@ -33,14 +33,20 @@ public class LobbyManager : NetworkBehaviour
     private void ClientConectedServerRpc(ulong playerId)
     {
         playerReadyStatus[playerId] = false;
-        foreach(var player in playerReadyStatus){
-            ClientConectedClientRpc(player.Key,player.Value);
+
+        // Copiamos la lista para evitar modificarla durante la iteración
+        var snapshot = new List<KeyValuePair<ulong, bool>>(playerReadyStatus);
+
+        foreach (var player in snapshot)
+        {
+            ClientConectedClientRpc(player.Key, player.Value);
         }
     }
 
     [ClientRpc]
-    private void ClientConectedClientRpc(ulong playerId,bool isReady)
+    private void ClientConectedClientRpc(ulong playerId, bool isReady)
     {
+        Debug.Log($"ClientRPC recibido -> playerId: {playerId}, ready: {isReady}");
         playerReadyStatus[playerId] = isReady;
         UpdateLobbyUI();
     }
@@ -52,13 +58,15 @@ public class LobbyManager : NetworkBehaviour
 
     public void SetPlayerReady()
     {
-        if (IsClient){
-            SubmitReadyServerRpc(NetworkManager.Singleton.SpawnManager
-                .GetLocalPlayerObject()
-                .GetComponent<PlayerNetworkController>().playerId, true);
+        if (IsClient)
+        {
+            var player = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
+            var controller = player.GetComponent<PlayerNetworkController>();
+            controller.IsReady.Value = true;
+
+            SubmitReadyServerRpc(player.OwnerClientId, true);
         }
     }
-
     [ServerRpc]
     private void SubmitReadyServerRpc(ulong playerId, bool isReady)
     {
@@ -77,12 +85,19 @@ public class LobbyManager : NetworkBehaviour
     private void CheckReadyState()
     {
         int readyCount = 0;
-        foreach (var ready in playerReadyStatus.Values)
+        int totalCount = NetworkManager.Singleton.ConnectedClients.Count;
+
+        foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
         {
-            if (ready) readyCount++;
+            var obj = client.PlayerObject;
+            var controller = obj.GetComponent<PlayerNetworkController>();
+            if (controller != null && controller.IsReady.Value)
+            {
+                readyCount++;
+            }
         }
 
-        if (readyCount == playerReadyStatus.Count)
+        if (readyCount == totalCount)
         {
             NetworkManager.Singleton.SceneManager.LoadScene("GameScene", LoadSceneMode.Single);
         }
@@ -97,10 +112,14 @@ public class LobbyManager : NetworkBehaviour
             Destroy(child.gameObject);
         }
 
-        foreach (var player in playerReadyStatus)
+        foreach (var player in NetworkManager.Singleton.ConnectedClientsList)
         {
+            var obj = player.PlayerObject;
+            var controller = obj.GetComponent<PlayerNetworkController>();
+            string name = controller != null ? controller.UniqueId.Value.ToString() : $"Player {player.ClientId}";
+
             GameObject playerLobby = Instantiate(playerLobbyPrefab, transform);
-            playerLobby.GetComponent<PlayerLobbyManager>().SetInfo("Player " + player.Key, player.Value);
+            playerLobby.GetComponent<PlayerLobbyManager>().SetInfo(name, controller.IsReady.Value);
         }
     }
 }

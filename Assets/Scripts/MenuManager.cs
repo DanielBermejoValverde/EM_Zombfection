@@ -30,10 +30,18 @@ public class MenuManager : MonoBehaviour
 
     public void JoinGame()
     {
+        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
         NetworkManager.Singleton.StartClient();
-        lobbyUI.SetActive(true);
-        menuUI.SetActive(false); 
-        print("Player");
+    }
+
+    private void OnClientConnected(ulong clientId)
+    {
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+        {
+            lobbyUI.SetActive(true);
+            menuUI.SetActive(false);
+            print("Player conectado correctamente");
+        }
     }
 
 
