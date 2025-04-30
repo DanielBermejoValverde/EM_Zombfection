@@ -14,7 +14,7 @@ public class LobbyManager : NetworkBehaviour
     {
         
     }
-
+    
     public override void OnNetworkSpawn()
     {
         if (IsServer)
@@ -62,12 +62,12 @@ public class LobbyManager : NetworkBehaviour
 
     public void SetPlayerReady()
     {
-            SubmitReady(NetworkManager.Singleton.SpawnManager
+            SubmitReadyServerRpc(NetworkManager.Singleton.SpawnManager
                 .GetLocalPlayerObject()
                 .GetComponent<PlayerNetworkController>().playerId, true);
     }
-
-    private void SubmitReady(ulong playerId, bool isReady)
+    [ServerRpc(RequireOwnership = false)]
+    private void SubmitReadyServerRpc(ulong playerId, bool isReady)
     {
         if(!IsServer)return;
         playerReadyStatus[playerId] = isReady;
