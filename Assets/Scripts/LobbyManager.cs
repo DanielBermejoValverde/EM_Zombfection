@@ -33,9 +33,11 @@ public class LobbyManager : NetworkBehaviour
     private void ClientConectedServerRpc(ulong playerId)
     {
         playerReadyStatus[playerId] = false;
-        foreach(var player in playerReadyStatus){
-            ClientConectedClientRpc(player.Key,player.Value);
-        }
+        foreach (var key in new List<ulong>(playerReadyStatus.Keys))
+            {
+                var value = playerReadyStatus[key];
+                ClientConectedClientRpc(key, value);
+            }
     }
 
     [ClientRpc]
@@ -47,21 +49,27 @@ public class LobbyManager : NetworkBehaviour
 
     private void OnClientDisconnected(ulong clientId)
     {
+        playerReadyStatus.Remove(clientId);
+        OnClientDisconnectedClientRpc(clientId);
+        UpdateLobbyUI();
+    }
+    [ClientRpc]
+    private void OnClientDisconnectedClientRpc(ulong clientId)
+    {
+        playerReadyStatus.Remove(clientId);
         UpdateLobbyUI();
     }
 
     public void SetPlayerReady()
     {
-        if (IsClient){
-            SubmitReadyServerRpc(NetworkManager.Singleton.SpawnManager
+            SubmitReady(NetworkManager.Singleton.SpawnManager
                 .GetLocalPlayerObject()
                 .GetComponent<PlayerNetworkController>().playerId, true);
-        }
     }
 
-    [ServerRpc]
-    private void SubmitReadyServerRpc(ulong playerId, bool isReady)
+    private void SubmitReady(ulong playerId, bool isReady)
     {
+        if(!IsServer)return;
         playerReadyStatus[playerId] = isReady;
         CheckReadyState();
         SubmitReadyClientRpc(playerId,isReady);
