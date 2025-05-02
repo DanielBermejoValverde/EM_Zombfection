@@ -14,7 +14,7 @@ public class LobbyManager : NetworkBehaviour
     {
         
     }
-
+    
     public override void OnNetworkSpawn()
     {
         if (IsServer)
@@ -26,30 +26,60 @@ public class LobbyManager : NetworkBehaviour
 
     private void OnClientConnected(ulong clientId)
     {
-        playerReadyStatus[clientId] = false;
-        UpdateLobbyUIClientRpc();
+        ClientConectedServerRpc(clientId);
+        UpdateLobbyUI();
+    }
+    [ServerRpc]
+    private void ClientConectedServerRpc(ulong playerId)
+    {
+        playerReadyStatus[playerId] = false;
+        foreach (var key in new List<ulong>(playerReadyStatus.Keys))
+            {
+                var value = playerReadyStatus[key];
+                ClientConectedClientRpc(key, value);
+            }
+    }
+
+    [ClientRpc]
+    private void ClientConectedClientRpc(ulong playerId,bool isReady)
+    {
+        playerReadyStatus[playerId] = isReady;
+        UpdateLobbyUI();
     }
 
     private void OnClientDisconnected(ulong clientId)
     {
         playerReadyStatus.Remove(clientId);
-        UpdateLobbyUIClientRpc();
+        OnClientDisconnectedClientRpc(clientId);
+        UpdateLobbyUI();
+    }
+    [ClientRpc]
+    private void OnClientDisconnectedClientRpc(ulong clientId)
+    {
+        playerReadyStatus.Remove(clientId);
+        UpdateLobbyUI();
     }
 
     public void SetPlayerReady()
     {
-        if (IsClient)
-        {
-            SubmitReadyServerRpc(NetworkManager.Singleton.LocalClientId, true);
-        }
+            SubmitReadyServerRpc(NetworkManager.Singleton.SpawnManager
+                .GetLocalPlayerObject()
+                .GetComponent<PlayerNetworkController>().playerId, true);
     }
-
-    [ServerRpc]
-    private void SubmitReadyServerRpc(ulong clientId, bool isReady)
+    [ServerRpc(RequireOwnership = false)]
+    private void SubmitReadyServerRpc(ulong playerId, bool isReady)
     {
-        playerReadyStatus[clientId] = isReady;
+        if(!IsServer)return;
+        playerReadyStatus[playerId] = isReady;
         CheckReadyState();
-        UpdateLobbyUIClientRpc();
+        SubmitReadyClientRpc(playerId,isReady);
+        UpdateLobbyUI();
+    }
+    [ClientRpc]
+    private void SubmitReadyClientRpc(ulong playerId, bool isReady)
+    {
+        playerReadyStatus[playerId] = isReady;
+        UpdateLobbyUI();
     }
 
     private void CheckReadyState()
@@ -62,11 +92,11 @@ public class LobbyManager : NetworkBehaviour
 
         if (readyCount == playerReadyStatus.Count)
         {
-            SceneManager.LoadScene("GameScene");
+            NetworkManager.Singleton.SceneManager.LoadScene("GameScene", LoadSceneMode.Single);
         }
     }
-    [ClientRpc]
-    private void UpdateLobbyUIClientRpc()
+
+    private void UpdateLobbyUI()
     {
         foreach (Transform child in transform)
         {
@@ -74,13 +104,11 @@ public class LobbyManager : NetworkBehaviour
                 continue;
             Destroy(child.gameObject);
         }
-        foreach (var kvp in playerReadyStatus)
+
+        foreach (var player in playerReadyStatus)
         {
-            Transform newTransform = transform;
-            newTransform.position = newTransform.position + new Vector3(0,posY, 0);
-            GameObject playerLobby = Instantiate(playerLobbyPrefab, newTransform);
-            posY -= 30;
-            playerLobby.GetComponent<PlayerLobbyManager>().SetInfo("Player " + kvp.Key, kvp.Value);
+            GameObject playerLobby = Instantiate(playerLobbyPrefab, transform);
+            playerLobby.GetComponent<PlayerLobbyManager>().SetInfo("Player " + player.Key, player.Value);
         }
     }
 }
