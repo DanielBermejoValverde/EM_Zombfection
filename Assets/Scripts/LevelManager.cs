@@ -4,6 +4,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Unity.Netcode;
 
 public enum GameMode
 {
@@ -11,7 +12,7 @@ public enum GameMode
     Monedas
 }
 
-public class LevelManager : MonoBehaviour
+public class LevelManager : NetworkBehaviour
 {
     #region Properties
 
@@ -20,10 +21,11 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private GameObject zombiePrefab;
 
     [Header("Team Settings")]
-    [Tooltip("Número de jugadores humanos")]
+    [Tooltip("Nï¿½mero de jugadores humanos")]
+    [SerializeField] private int numberOfPlayers;
     [SerializeField] private int numberOfHumans = 2;
 
-    [Tooltip("Número de zombis")]
+    [Tooltip("Nï¿½mero de zombis")]
     [SerializeField] private int numberOfZombies = 2;
 
     [Header("Game Mode Settings")]
@@ -70,7 +72,9 @@ public class LevelManager : MonoBehaviour
         // Obtener la referencia al LevelBuilder
         levelBuilder = GetComponent<LevelBuilder>();
 
-        Time.timeScale = 1f; // Asegurarse de que el tiempo no esté detenido
+        numberOfPlayers = NetworkManager.Singleton.SpawnManager.SpawnedObjects.Count;
+
+        Time.timeScale = 1f; // Asegurarse de que el tiempo no estï¿½ detenido
     }
 
     private void Start()
@@ -109,11 +113,10 @@ public class LevelManager : MonoBehaviour
         }
 
         remainingSeconds = minutes * 60;
-
-        // Obtener los puntos de aparición y el número de monedas generadas desde LevelBuilder
+        // Obtener los puntos de apariciï¿½n y el nï¿½mero de monedas generadas desde LevelBuilder
         if (levelBuilder != null)
         {
-            levelBuilder.Build();
+            if(IsServer)levelBuilder.Build();
             humanSpawnPoints = levelBuilder.GetHumanSpawnPoints();
             zombieSpawnPoints = levelBuilder.GetZombieSpawnPoints();
             CoinsGenerated = levelBuilder.GetCoinsGenerated();
@@ -128,18 +131,18 @@ public class LevelManager : MonoBehaviour
     {
         if (gameMode == GameMode.Tiempo)
         {
-            // Lógica para el modo de juego basado en tiempo
+            // Lï¿½gica para el modo de juego basado en tiempo
             HandleTimeLimitedGameMode();
         }
         else if (gameMode == GameMode.Monedas)
         {
-            // Lógica para el modo de juego basado en monedas
+            // Lï¿½gica para el modo de juego basado en monedas
             HandleCoinBasedGameMode();
         }
 
         if (Input.GetKeyDown(KeyCode.Z)) // Presiona "Z" para convertirte en Zombie
         {
-            // Comprobar si el jugador actual está usando el prefab de humano
+            // Comprobar si el jugador actual estï¿½ usando el prefab de humano
             GameObject currentPlayer = GameObject.FindGameObjectWithTag("Player");
             if (currentPlayer != null && currentPlayer.name.Contains(playerPrefab.name))
             {
@@ -152,7 +155,7 @@ public class LevelManager : MonoBehaviour
         }
         else if (Input.GetKeyDown(KeyCode.H)) // Presiona "H" para convertirte en Humano
         {
-            // Comprobar si el jugador actual está usando el prefab de zombie
+            // Comprobar si el jugador actual estï¿½ usando el prefab de zombie
             GameObject currentPlayer = GameObject.FindGameObjectWithTag("Player");
             if (currentPlayer != null && currentPlayer.name.Contains(zombiePrefab.name))
             {
@@ -187,7 +190,7 @@ public class LevelManager : MonoBehaviour
 
         if (human != null)
         {
-            // Guardar la posición, rotación y uniqueID del humano actual
+            // Guardar la posiciï¿½n, rotaciï¿½n y uniqueID del humano actual
             Vector3 playerPosition = human.transform.position;
             Quaternion playerRotation = human.transform.rotation;
             string uniqueID = human.GetComponent<PlayerController>().uniqueID;
@@ -195,7 +198,7 @@ public class LevelManager : MonoBehaviour
             // Destruir el humano actual
             Destroy(human);
 
-            // Instanciar el prefab del zombie en la misma posición y rotación
+            // Instanciar el prefab del zombie en la misma posiciï¿½n y rotaciï¿½n
             GameObject zombie = Instantiate(zombiePrefab, playerPosition, playerRotation);
             if (enabled) { zombie.tag = "Player"; }
 
@@ -205,19 +208,19 @@ public class LevelManager : MonoBehaviour
             {
                 playerController.enabled = enabled;
                 playerController.isZombie = true; // Cambiar el estado a zombie
-                playerController.uniqueID = uniqueID; // Mantener el identificador único
-                numberOfHumans--; // Reducir el número de humanos
-                numberOfZombies++; // Aumentar el número de zombis
+                playerController.uniqueID = uniqueID; // Mantener el identificador ï¿½nico
+                numberOfHumans--; // Reducir el nï¿½mero de humanos
+                numberOfZombies++; // Aumentar el nï¿½mero de zombis
                 UpdateTeamUI();
 
                 if (enabled)
                 {
-                    // Obtener la referencia a la cámara principal
+                    // Obtener la referencia a la cï¿½mara principal
                     Camera mainCamera = Camera.main;
 
                     if (mainCamera != null)
                     {
-                        // Obtener el script CameraController de la cámara principal
+                        // Obtener el script CameraController de la cï¿½mara principal
                         CameraController cameraController = mainCamera.GetComponent<CameraController>();
 
                         if (cameraController != null)
@@ -226,12 +229,12 @@ public class LevelManager : MonoBehaviour
                             cameraController.player = zombie.transform;
                         }
 
-                        // Asignar el transform de la cámara al PlayerController
+                        // Asignar el transform de la cï¿½mara al PlayerController
                         playerController.cameraTransform = mainCamera.transform;
                     }
                     else
                     {
-                        Debug.LogError("No se encontró la cámara principal.");
+                        Debug.LogError("No se encontrï¿½ la cï¿½mara principal.");
                     }
                 }
             }
@@ -242,7 +245,7 @@ public class LevelManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("No se encontró el humano actual.");
+            Debug.LogError("No se encontrï¿½ el humano actual.");
         }
     }
 
@@ -255,23 +258,23 @@ public class LevelManager : MonoBehaviour
 
         if (currentPlayer != null)
         {
-            // Guardar la posición y rotación del jugador actual
+            // Guardar la posiciï¿½n y rotaciï¿½n del jugador actual
             Vector3 playerPosition = currentPlayer.transform.position;
             Quaternion playerRotation = currentPlayer.transform.rotation;
 
             // Destruir el jugador actual
             Destroy(currentPlayer);
 
-            // Instanciar el prefab del humano en la misma posición y rotación
+            // Instanciar el prefab del humano en la misma posiciï¿½n y rotaciï¿½n
             GameObject human = Instantiate(playerPrefab, playerPosition, playerRotation);
             human.tag = "Player";
 
-            // Obtener la referencia a la cámara principal
+            // Obtener la referencia a la cï¿½mara principal
             Camera mainCamera = Camera.main;
 
             if (mainCamera != null)
             {
-                // Obtener el script CameraController de la cámara principal
+                // Obtener el script CameraController de la cï¿½mara principal
                 CameraController cameraController = mainCamera.GetComponent<CameraController>();
 
                 if (cameraController != null)
@@ -282,14 +285,14 @@ public class LevelManager : MonoBehaviour
 
                 // Obtener el componente PlayerController del humano instanciado
                 playerController = human.GetComponent<PlayerController>();
-                // Asignar el transform de la cámara al PlayerController
+                // Asignar el transform de la cï¿½mara al PlayerController
                 if (playerController != null)
                 {
                     playerController.enabled = true;
                     playerController.cameraTransform = mainCamera.transform;
                     playerController.isZombie = false; // Cambiar el estado a humano
-                    numberOfHumans++; // Aumentar el número de humanos
-                    numberOfZombies--; // Reducir el número de zombis
+                    numberOfHumans++; // Aumentar el nï¿½mero de humanos
+                    numberOfZombies--; // Reducir el nï¿½mero de zombis
                 }
                 else
                 {
@@ -298,12 +301,12 @@ public class LevelManager : MonoBehaviour
             }
             else
             {
-                Debug.LogError("No se encontró la cámara principal.");
+                Debug.LogError("No se encontrï¿½ la cï¿½mara principal.");
             }
         }
         else
         {
-            Debug.LogError("No se encontró el jugador actual.");
+            Debug.LogError("No se encontrï¿½ el jugador actual.");
         }
     }
 
@@ -317,31 +320,31 @@ public class LevelManager : MonoBehaviour
             GameObject player = Instantiate(prefab, spawnPosition, Quaternion.identity);
             player.tag = "Player";
 
-            // Obtener la referencia a la cámara principal
+            // Obtener la referencia a la cï¿½mara principal
             Camera mainCamera = Camera.main;
 
             if (mainCamera != null)
             {
-                // Obtener el script CameraController de la cámara principal
+                // Obtener el script CameraController de la cï¿½mara principal
                 CameraController cameraController = mainCamera.GetComponent<CameraController>();
 
                 if (cameraController != null)
                 {
-                    Debug.Log($"CameraController encontrado en la cámara principal.");
+                    Debug.Log($"CameraController encontrado en la cï¿½mara principal.");
                     // Asignar el jugador al script CameraController
                     cameraController.player = player.transform;
                 }
 
-                Debug.Log($"Cámara principal encontrada en {mainCamera}");
+                Debug.Log($"Cï¿½mara principal encontrada en {mainCamera}");
                 // Obtener el componente PlayerController del jugador instanciado
                 playerController = player.GetComponent<PlayerController>();
-                // Asignar el transform de la cámara al PlayerController
+                // Asignar el transform de la cï¿½mara al PlayerController
                 if (playerController != null)
                 {
                     Debug.Log($"PlayerController encontrado en el jugador instanciado.");
                     playerController.enabled = true;
                     playerController.cameraTransform = mainCamera.transform;
-                    playerController.uniqueID = uniqueIdGenerator.GenerateUniqueID(); // Generar un identificador único
+                    playerController.uniqueID = uniqueIdGenerator.GenerateUniqueID(); // Generar un identificador ï¿½nico
 
                 }
                 else
@@ -351,12 +354,12 @@ public class LevelManager : MonoBehaviour
             }
             else
             {
-                Debug.LogError("No se encontró la cámara principal.");
+                Debug.LogError("No se encontrï¿½ la cï¿½mara principal.");
             }
         }
         else
         {
-            Debug.LogError("Faltan referencias al prefab o al punto de aparición.");
+            Debug.LogError("Faltan referencias al prefab o al punto de apariciï¿½n.");
         }
     }
 
@@ -364,8 +367,10 @@ public class LevelManager : MonoBehaviour
     {
         Debug.Log("Instanciando equipos");
         if (humanSpawnPoints.Count <= 0) { return; }
-        SpawnPlayer(humanSpawnPoints[0], playerPrefab);
-        Debug.Log($"Personaje jugable instanciado en {humanSpawnPoints[0]}");
+        for(int i =0;i<numberOfPlayers;i++){
+            SpawnPlayer(humanSpawnPoints[i], playerPrefab);
+            Debug.Log($"Personaje jugable instanciado en {humanSpawnPoints[i]}");
+        }
 
         for (int i = 1; i < numberOfHumans; i++)
         {
@@ -394,7 +399,7 @@ public class LevelManager : MonoBehaviour
             if (playerController != null)
             {
                 playerController.enabled = false; // Desactivar el controlador del jugador
-                playerController.uniqueID = uniqueIdGenerator.GenerateUniqueID(); // Asignar un identificador único
+                playerController.uniqueID = uniqueIdGenerator.GenerateUniqueID(); // Asignar un identificador ï¿½nico
             }
             Debug.Log($"Personaje no jugable instanciado en {spawnPosition}");
         }
@@ -419,7 +424,7 @@ public class LevelManager : MonoBehaviour
 
     private void HandleTimeLimitedGameMode()
     {
-        // Implementar la lógica para el modo de juego basado en tiempo
+        // Implementar la lï¿½gica para el modo de juego basado en tiempo
         if (isGameOver) return;
 
         // Decrementar remainingSeconds basado en Time.deltaTime
@@ -448,7 +453,7 @@ public class LevelManager : MonoBehaviour
     {
         if (isGameOver) return;
 
-        // Implementar la lógica para el modo de juego basado en monedas
+        // Implementar la lï¿½gica para el modo de juego basado en monedas
         if (gameModeText != null && playerController != null)
         {
             gameModeText.text = $"{playerController.CoinsCollected}/{CoinsGenerated}";
@@ -466,7 +471,7 @@ public class LevelManager : MonoBehaviour
             Time.timeScale = 0f;
             gameOverPanel.SetActive(true); // Muestra el panel de pausa
 
-            // Gestión del cursor
+            // Gestiï¿½n del cursor
             Cursor.lockState = CursorLockMode.None; // Desbloquea el cursor
             Cursor.visible = true; // Hace visible el cursor
         }
@@ -474,11 +479,11 @@ public class LevelManager : MonoBehaviour
 
     public void ReturnToMainMenu()
     {
-        // Gestión del cursor
+        // Gestiï¿½n del cursor
         Cursor.lockState = CursorLockMode.Locked; // Bloquea el cursor
         Cursor.visible = false; // Oculta el cursor
 
-        // Cargar la escena del menú principal
+        // Cargar la escena del menï¿½ principal
         SceneManager.LoadScene("MenuScene"); // Cambia "MenuScene" por el nombre de tu escena principal
     }
 
