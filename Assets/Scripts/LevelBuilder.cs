@@ -64,7 +64,8 @@ public class LevelBuilder : NetworkBehaviour
 
     private void Awake()
     {
-        GameObject parentObject = new GameObject("RoomsParent");
+        GameObject parentObject = GameObject.Find("RoomParent");
+        parentObject.GetComponent<NetworkObject>().Spawn();
         roomParent = parentObject.transform;
     }
 
@@ -99,10 +100,12 @@ public class LevelBuilder : NetworkBehaviour
                 if (i % 2 == 0 && j % 2 == 0)
                 {
                     humanSpawnPoints.Add(spawnPoint);
+                    Debug.Log("Spawn humano");
                 }
                 else
                 {
                     zombieSpawnPoints.Add(spawnPoint);
+                    Debug.Log("Spawn zombi");
                 }
             }
         }
@@ -143,7 +146,7 @@ public class LevelBuilder : NetworkBehaviour
                 GameObject selectedFloorPrefab = floorPrefabs[randomIndex];
 
                 Vector3 tilePosition = new Vector3(x * tileSize + offsetX, 0, z * tileSize + offsetZ);
-                GameObject tile = Instantiate(selectedFloorPrefab, tilePosition, Quaternion.identity);
+                GameObject tile = Instantiate(selectedFloorPrefab, tilePosition, Quaternion.identity, roomParent);
                 tile.name = $"Tile_{x}_{z}";
                 tile.GetComponent<NetworkObject>().Spawn();
 
@@ -216,7 +219,7 @@ public class LevelBuilder : NetworkBehaviour
     {
         if(IsServer){
             Vector3 position = new Vector3(x, 0, z);
-            GameObject go = Instantiate(prefab, position, rotation);
+            GameObject go = Instantiate(prefab, position, rotation, roomParent);
             go.GetComponent<NetworkObject>().Spawn();
         }
     }

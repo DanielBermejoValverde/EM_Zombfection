@@ -72,7 +72,7 @@ public class LevelManager : NetworkBehaviour
         // Obtener la referencia al LevelBuilder
         levelBuilder = GetComponent<LevelBuilder>();
 
-        numberOfPlayers = NetworkManager.Singleton.SpawnManager.SpawnedObjects.Count;
+        numberOfPlayers = NetworkManager.Singleton.ConnectedClients.Count;
 
         Time.timeScale = 1f; // Asegurarse de que el tiempo no est� detenido
     }
@@ -310,7 +310,7 @@ public class LevelManager : NetworkBehaviour
         }
     }
 
-    private void SpawnPlayer(Vector3 spawnPosition, GameObject prefab)
+    private void SpawnPlayer(Vector3 spawnPosition, GameObject prefab, ulong clientId)
     {
         Debug.Log($"Instanciando jugador en {spawnPosition}");
         if (prefab != null)
@@ -319,59 +319,90 @@ public class LevelManager : NetworkBehaviour
             // Crear una instancia del prefab en el punto especificado
             GameObject player = Instantiate(prefab, spawnPosition, Quaternion.identity);
             player.tag = "Player";
-
-            // Obtener la referencia a la c�mara principal
-            Camera mainCamera = Camera.main;
-
-            if (mainCamera != null)
-            {
-                // Obtener el script CameraController de la c�mara principal
-                CameraController cameraController = mainCamera.GetComponent<CameraController>();
-
-                if (cameraController != null)
-                {
-                    Debug.Log($"CameraController encontrado en la c�mara principal.");
-                    // Asignar el jugador al script CameraController
-                    cameraController.player = player.transform;
-                }
-
-                Debug.Log($"C�mara principal encontrada en {mainCamera}");
-                // Obtener el componente PlayerController del jugador instanciado
-                playerController = player.GetComponent<PlayerController>();
-                // Asignar el transform de la c�mara al PlayerController
-                if (playerController != null)
-                {
-                    Debug.Log($"PlayerController encontrado en el jugador instanciado.");
-                    playerController.enabled = true;
-                    playerController.cameraTransform = mainCamera.transform;
-                    playerController.uniqueID = uniqueIdGenerator.GenerateUniqueID(); // Generar un identificador �nico
-
-                }
-                else
-                {
-                    Debug.LogError("PlayerController no encontrado en el jugador instanciado.");
-                }
-            }
-            else
-            {
-                Debug.LogError("No se encontr� la c�mara principal.");
-            }
+            player.name = "Player_"+clientId.ToString();
+            //Servidor spawnea los objetos como playerObject de otros
+            player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
+            //SpawnPlayerClientRpc(clientId);
+           
         }
         else
         {
             Debug.LogError("Faltan referencias al prefab o al punto de aparici�n.");
         }
     }
+    [ClientRpc]
+    private void SpawnPlayerClientRpc(ulong clientId)
+    {
+        if (NetworkManager.Singleton.LocalClientId != clientId) return;
+        GameObject player = new GameObject();
+        foreach (var networkObj in NetworkManager.Singleton.SpawnManager.SpawnedObjectsList)
+        {
+            Debug.Log(networkObj);
+            if (networkObj.IsOwner)
+            {
+                Debug.Log("Network Owner");
+                PlayerController pc = networkObj.GetComponent<PlayerController>();
+                if (pc != null)
+                {
+                    Debug.Log("Player network");
+                    player = pc.gameObject;
+                }
+            }
+        }
+        // Obtener la referencia a la c�mara principal
+        Camera mainCamera = Camera.main;
+
+        if (mainCamera != null)
+        {
+            // Obtener el script CameraController de la c�mara principal
+            CameraController cameraController = mainCamera.GetComponent<CameraController>();
+
+            if (cameraController != null)
+            {
+                Debug.Log($"CameraController encontrado en la c�mara principal.");
+                // Asignar el jugador al script CameraController
+                cameraController.player = player.transform;
+            }
+
+            Debug.Log($"C�mara principal encontrada en {mainCamera}");
+            // Obtener el componente PlayerController del jugador instanciado
+            playerController = player.GetComponent<PlayerController>();
+            // Asignar el transform de la c�mara al PlayerController
+            if (playerController != null)
+            {
+                Debug.Log($"PlayerController encontrado en el jugador instanciado.");
+                playerController.enabled = true;
+                playerController.cameraTransform = mainCamera.transform;
+                playerController.uniqueID = uniqueIdGenerator.GenerateUniqueID(); // Generar un identificador �nico
+
+            }
+            else
+            {
+                Debug.LogError("PlayerController no encontrado en el jugador instanciado.");
+            }
+        }
+        else
+        {
+            Debug.LogError("No se encontr� la c�mara principal.");
+        }
+
+    }
 
     private void SpawnTeams()
     {
+        if (!IsServer) return; //Los clientes no realizan ningun trabajo de spawneo
         Debug.Log("Instanciando equipos");
         if (humanSpawnPoints.Count <= 0) { return; }
-        for(int i =0;i<numberOfPlayers;i++){
-            SpawnPlayer(humanSpawnPoints[i], playerPrefab);
-            Debug.Log($"Personaje jugable instanciado en {humanSpawnPoints[i]}");
+        int i = 0;
+        Debug.Log($"Connected clients {NetworkManager.Singleton.ConnectedClients.Count}");
+        Debug.Log($"Human spaun points count: {humanSpawnPoints.Count}");
+        foreach (var client in NetworkManager.Singleton.ConnectedClients)
+        {
+            SpawnPlayer(humanSpawnPoints[0], playerPrefab,client.Key);
+            Debug.Log($"Personaje jugable instanciado en {humanSpawnPoints[0]}");
+            i++;
         }
-
+        /*
         for (int i = 1; i < numberOfHumans; i++)
         {
             if (i < humanSpawnPoints.Count)
@@ -387,6 +418,7 @@ public class LevelManager : NetworkBehaviour
                 SpawnNonPlayableCharacter(zombiePrefab, zombieSpawnPoints[i]);
             }
         }
+        */
     }
 
     private void SpawnNonPlayableCharacter(GameObject prefab, Vector3 spawnPosition)

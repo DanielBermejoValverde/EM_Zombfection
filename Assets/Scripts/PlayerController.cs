@@ -1,4 +1,4 @@
-using TMPro;
+锘縰sing TMPro;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -9,14 +9,14 @@ public class PlayerController : MonoBehaviour
     public int CoinsCollected = 0;
 
     [Header("Character settings")]
-    public bool isZombie = false; // A馻dir una propiedad para el estado del jugador
-    public string uniqueID; // A馻dir una propiedad para el identificador 鷑ico
+    public bool isZombie = false; // A帽adir una propiedad para el estado del jugador
+    public string uniqueID; // A帽adir una propiedad para el identificador 煤nico
 
     [Header("Movement Settings")]
     public float moveSpeed = 5f;           // Velocidad de movimiento
     public float zombieSpeedModifier = 0.8f; // Modificador de velocidad para zombies
     public Animator animator;              // Referencia al Animator
-    public Transform cameraTransform;      // Referencia a la c醡ara
+    public Transform cameraTransform;      // Referencia a la c谩mara
 
     private float horizontalInput;         // Entrada horizontal (A/D o flechas)
     private float verticalInput;           // Entrada vertical (W/S o flechas)
@@ -63,28 +63,28 @@ public class PlayerController : MonoBehaviour
     {
         if (cameraTransform == null) { return; }
 
-        // Calcular la direcci髇 de movimiento en relaci髇 a la c醡ara
+        // Calcular la direcci贸n de movimiento en relaci贸n a la c谩mara
         Vector3 moveDirection = (cameraTransform.forward * verticalInput + cameraTransform.right * horizontalInput).normalized;
         moveDirection.y = 0f; // Asegurarnos de que el movimiento es horizontal (sin componente Y)
 
         // Mover el jugador usando el Transform
         if (moveDirection != Vector3.zero)
         {
-            // Calcular la rotaci髇 en Y basada en la direcci髇 del movimiento
+            // Calcular la rotaci贸n en Y basada en la direcci贸n del movimiento
             Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
             transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, 720f * Time.deltaTime);
 
             // Ajustar la velocidad si es zombie
             float adjustedSpeed = isZombie ? moveSpeed * zombieSpeedModifier : moveSpeed;
 
-            // Mover al jugador en la direcci髇 deseada
+            // Mover al jugador en la direcci贸n deseada
             transform.Translate(moveDirection * adjustedSpeed * Time.deltaTime, Space.World);
         }
     }
 
     void HandleAnimations()
     {
-        // Animaciones basadas en la direcci髇 del movimiento
+        // Animaciones basadas en la direcci贸n del movimiento
         animator.SetFloat("Speed", Mathf.Abs(horizontalInput) + Mathf.Abs(verticalInput));  // Controla el movimiento (caminar/correr)
     }
 
