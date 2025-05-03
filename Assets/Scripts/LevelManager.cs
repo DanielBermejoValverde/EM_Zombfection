@@ -322,7 +322,7 @@ public class LevelManager : NetworkBehaviour
             player.name = "Player_"+clientId.ToString();
             //Servidor spawnea los objetos como playerObject de otros
             player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
-            //SpawnPlayerClientRpc(clientId);
+            SpawnPlayerClientRpc(clientId);
            
         }
         else
@@ -398,8 +398,8 @@ public class LevelManager : NetworkBehaviour
         Debug.Log($"Human spaun points count: {humanSpawnPoints.Count}");
         foreach (var client in NetworkManager.Singleton.ConnectedClients)
         {
-            SpawnPlayer(humanSpawnPoints[0], playerPrefab,client.Key);
-            Debug.Log($"Personaje jugable instanciado en {humanSpawnPoints[0]}");
+            SpawnPlayer(humanSpawnPoints[i], playerPrefab,client.Key);
+            Debug.Log($"Personaje jugable instanciado en {humanSpawnPoints[i]}");
             i++;
         }
         /*

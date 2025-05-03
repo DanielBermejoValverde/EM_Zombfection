@@ -97,16 +97,19 @@ public class LevelBuilder : NetworkBehaviour
 
                 // Calcular spawn points
                 Vector3 spawnPoint = new Vector3(x + roomWidth / 2, 2, z + roomLength / 2);
+                humanSpawnPoints.Add(spawnPoint);
+                /* Vamos a ignorar la diferencia entre spawns, se elegira de otra manera el equipo 
                 if (i % 2 == 0 && j % 2 == 0)
                 {
                     humanSpawnPoints.Add(spawnPoint);
                     Debug.Log("Spawn humano");
                 }
+
                 else
                 {
                     zombieSpawnPoints.Add(spawnPoint);
                     Debug.Log("Spawn zombi");
-                }
+                }*/
             }
         }
 
@@ -146,7 +149,7 @@ public class LevelBuilder : NetworkBehaviour
                 GameObject selectedFloorPrefab = floorPrefabs[randomIndex];
 
                 Vector3 tilePosition = new Vector3(x * tileSize + offsetX, 0, z * tileSize + offsetZ);
-                GameObject tile = Instantiate(selectedFloorPrefab, tilePosition, Quaternion.identity, roomParent);
+                GameObject tile = Instantiate(selectedFloorPrefab, tilePosition, Quaternion.identity);
                 tile.name = $"Tile_{x}_{z}";
                 tile.GetComponent<NetworkObject>().Spawn();
 
@@ -219,7 +222,7 @@ public class LevelBuilder : NetworkBehaviour
     {
         if(IsServer){
             Vector3 position = new Vector3(x, 0, z);
-            GameObject go = Instantiate(prefab, position, rotation, roomParent);
+            GameObject go = Instantiate(prefab, position, rotation);
             go.GetComponent<NetworkObject>().Spawn();
         }
     }
