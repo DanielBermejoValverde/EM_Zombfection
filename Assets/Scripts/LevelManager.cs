@@ -318,9 +318,8 @@ public class LevelManager : NetworkBehaviour
             Debug.Log($"Instanciando jugador en {spawnPosition}");
             // Crear una instancia del prefab en el punto especificado
             GameObject player = Instantiate(prefab, spawnPosition, Quaternion.identity);
-            player.tag = "Player";
-            player.name = "Player_"+clientId.ToString();
-            //Servidor spawnea los objetos como playerObject de otros
+            player.GetComponent<PlayerController>().clientID = clientId;
+            //Servidor spawnea los objetos como playerObject de otros dejo conectado porque elcliente no se da cuenta que lo tiene en propiedad
             player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
             SpawnPlayerClientRpc(clientId);
            
@@ -335,16 +334,13 @@ public class LevelManager : NetworkBehaviour
     {
         if (NetworkManager.Singleton.LocalClientId != clientId) return;
         GameObject player = new GameObject();
-        foreach (var networkObj in NetworkManager.Singleton.SpawnManager.SpawnedObjectsList)
+        foreach (var obj in GameObject.FindGameObjectsWithTag("PlayableCharacter"))
         {
-            Debug.Log(networkObj);
-            if (networkObj.IsOwner)
+            if (obj.GetComponent<PlayerController>().clientID == NetworkManager.Singleton.LocalClientId)
             {
-                Debug.Log("Network Owner");
-                PlayerController pc = networkObj.GetComponent<PlayerController>();
+                PlayerController pc = obj.GetComponent<PlayerController>();
                 if (pc != null)
                 {
-                    Debug.Log("Player network");
                     player = pc.gameObject;
                 }
             }
@@ -398,7 +394,8 @@ public class LevelManager : NetworkBehaviour
         Debug.Log($"Human spaun points count: {humanSpawnPoints.Count}");
         foreach (var client in NetworkManager.Singleton.ConnectedClients)
         {
-            SpawnPlayer(humanSpawnPoints[i], playerPrefab,client.Key);
+            GameObject prefab = ((int)client.Key) % 2 == 0 ? playerPrefab : zombiePrefab;
+            SpawnPlayer(humanSpawnPoints[i], prefab, client.Key);
             Debug.Log($"Personaje jugable instanciado en {humanSpawnPoints[i]}");
             i++;
         }

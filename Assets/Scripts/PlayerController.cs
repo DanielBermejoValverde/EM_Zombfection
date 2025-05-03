@@ -12,6 +12,8 @@ public class PlayerController : MonoBehaviour
     public bool isZombie = false; // Añadir una propiedad para el estado del jugador
     public string uniqueID; // Añadir una propiedad para el identificador único
 
+    public ulong clientID;
+
     [Header("Movement Settings")]
     public float moveSpeed = 5f;           // Velocidad de movimiento
     public float zombieSpeedModifier = 0.8f; // Modificador de velocidad para zombies
