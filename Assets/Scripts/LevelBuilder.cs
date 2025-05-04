@@ -65,8 +65,8 @@ public class LevelBuilder : NetworkBehaviour
     private void Awake()
     {
         GameObject parentObject = GameObject.Find("RoomParent");
-        parentObject.GetComponent<NetworkObject>().Spawn();
-        roomParent = parentObject.transform;
+        //parentObject.GetComponent<NetworkObject>().Spawn();
+        //roomParent = parentObject.transform;
     }
 
     #endregion

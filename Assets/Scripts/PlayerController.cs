@@ -111,6 +111,40 @@ public class PlayerController : NetworkBehaviour
         if(IsServer){
             clientID.Value = OwnerClientId;
         }
+        if (IsOwner)
+        {
+        transform.SetParent(NetworkManager.Singleton.LocalClient.PlayerObject.transform);
+        // Obtener la referencia a la c�mara principal
+        Camera mainCamera = Camera.main;
+
+        if (mainCamera != null)
+        {
+            // Obtener el script CameraController de la c�mara principal
+            CameraController cameraController = mainCamera.GetComponent<CameraController>();
+
+            if (cameraController != null)
+            {
+                Debug.Log($"CameraController encontrado en la c�mara principal.");
+                // Asignar el jugador al script CameraController
+                cameraController.player = this.gameObject.transform;
+            }
+
+            Debug.Log($"C�mara principal encontrada en {mainCamera}");
+            // Obtener el componente PlayerController del jugador instanciado
+            // Asignar el transform de la c�mara al PlayerController
+                Debug.Log($"PlayerController encontrado en el jugador instanciado.");
+                this.enabled = true;
+                this.cameraTransform = mainCamera.transform;
+                //this.uniqueID = uniqueIdGenerator.GenerateUniqueID(); // Generar un identificador �nico
+
+        }
+        else
+        {
+            Debug.LogError("No se encontr� la c�mara principal.");
+        }
+        
+        
+        }
     }
 }
 

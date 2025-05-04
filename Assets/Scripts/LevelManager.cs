@@ -22,7 +22,6 @@ public class LevelManager : NetworkBehaviour
 
     [Header("Team Settings")]
     [Tooltip("N�mero de jugadores humanos")]
-    [SerializeField] private int numberOfPlayers;
     [SerializeField] private int numberOfHumans = 2;
 
     [Tooltip("N�mero de zombis")]
@@ -72,7 +71,6 @@ public class LevelManager : NetworkBehaviour
         // Obtener la referencia al LevelBuilder
         levelBuilder = GetComponent<LevelBuilder>();
 
-        numberOfPlayers = NetworkManager.Singleton.ConnectedClients.Count;
 
         Time.timeScale = 1f; // Asegurarse de que el tiempo no est� detenido
     }
@@ -310,61 +308,25 @@ public class LevelManager : NetworkBehaviour
         }
     }
 
-    private void SpawnPlayer(Vector3 spawnPosition, ulong clientId)
+    private void SpawnPlayer(Vector3 spawnPosition, GameObject prefab, ulong clientId)
     {
         Debug.Log($"Instanciando jugador en {spawnPosition}");
-        GameObject.FindGameObjectsWithTag("PlayableCharacter")[clientId].gameObject.transform.position = spawnPosition;
+        //GameObject.FindGameObjectsWithTag("PlayableCharacter")[clientId].gameObject.transform.position = spawnPosition;
+        
         // Crear una instancia del prefab en el punto especificado
-        //GameObject player = Instantiate(prefab, spawnPosition, Quaternion.identity);
+        GameObject player = Instantiate(prefab, spawnPosition, Quaternion.identity);
         //Servidor spawnea los objetos como playerObject de otros dejo conectado porque elcliente no se da cuenta que lo tiene en propiedad
-        //player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
-        //player.GetComponent<PlayerController>().clientID.Value = clientId;
+        player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
+        player.GetComponent<PlayerController>().clientID.Value = clientId;
 
-        SpawnPlayerClientRpc(clientId);
+        //SpawnPlayerClientRpc(clientId, player.GetComponent<NetworkObject>().NetworkObjectId);
            
     }
     [ClientRpc]
-    private void SpawnPlayerClientRpc(ulong clientId)
+    private void SpawnPlayerClientRpc(ulong clientId, ulong objectId)
     {
         if (NetworkManager.Singleton.LocalClientId != clientId) return;
-        NetworkObject playerNetwork =  NetworkManager.Singleton.LocalClient.PlayerObject;
-        GameObject player = playerNetwork.gameObject;
-        // Obtener la referencia a la c�mara principal
-        Camera mainCamera = Camera.main;
-
-        if (mainCamera != null)
-        {
-            // Obtener el script CameraController de la c�mara principal
-            CameraController cameraController = mainCamera.GetComponent<CameraController>();
-
-            if (cameraController != null)
-            {
-                Debug.Log($"CameraController encontrado en la c�mara principal.");
-                // Asignar el jugador al script CameraController
-                cameraController.player = player.transform;
-            }
-
-            Debug.Log($"C�mara principal encontrada en {mainCamera}");
-            // Obtener el componente PlayerController del jugador instanciado
-            playerController = player.GetComponent<PlayerController>();
-            // Asignar el transform de la c�mara al PlayerController
-            if (playerController != null)
-            {
-                Debug.Log($"PlayerController encontrado en el jugador instanciado.");
-                playerController.enabled = true;
-                playerController.cameraTransform = mainCamera.transform;
-                playerController.uniqueID = uniqueIdGenerator.GenerateUniqueID(); // Generar un identificador �nico
-
-            }
-            else
-            {
-                Debug.LogError("PlayerController no encontrado en el jugador instanciado.");
-            }
-        }
-        else
-        {
-            Debug.LogError("No se encontr� la c�mara principal.");
-        }
+        
 
     }
 
@@ -379,7 +341,7 @@ public class LevelManager : NetworkBehaviour
         foreach (var client in NetworkManager.Singleton.ConnectedClients)
         {
             GameObject prefab = ((int)client.Key) % 2 == 0 ? playerPrefab : zombiePrefab;
-            SpawnPlayer(humanSpawnPoints[i], client.Key);
+            SpawnPlayer(humanSpawnPoints[i],prefab, client.Key);
             Debug.Log($"Personaje jugable instanciado en {humanSpawnPoints[i]}");
             i++;
         }
