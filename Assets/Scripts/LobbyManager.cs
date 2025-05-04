@@ -62,9 +62,7 @@ public class LobbyManager : NetworkBehaviour
 
     public void SetPlayerReady()
     {
-            SubmitReadyServerRpc(NetworkManager.Singleton.SpawnManager
-                .GetLocalPlayerObject()
-                .GetComponent<PlayerNetworkController>().playerId, true);
+            SubmitReadyServerRpc(NetworkManager.Singleton.LocalClientId, true);
     }
     [ServerRpc(RequireOwnership = false)]
     private void SubmitReadyServerRpc(ulong playerId, bool isReady)

@@ -1,7 +1,8 @@
 ﻿using TMPro;
 using UnityEngine;
+using Unity.Netcode;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : NetworkBehaviour
 {
     private TextMeshProUGUI coinText;
 
@@ -12,7 +13,7 @@ public class PlayerController : MonoBehaviour
     public bool isZombie = false; // Añadir una propiedad para el estado del jugador
     public string uniqueID; // Añadir una propiedad para el identificador único
 
-    public ulong clientID;
+    public NetworkVariable<ulong> clientID;
 
     [Header("Movement Settings")]
     public float moveSpeed = 5f;           // Velocidad de movimiento
@@ -104,6 +105,11 @@ public class PlayerController : MonoBehaviour
         if (coinText != null)
         {
             coinText.text = $"{CoinsCollected}";
+        }
+    }
+    public override void OnNetworkSpawn(){
+        if(IsServer){
+            clientID.Value = OwnerClientId;
         }
     }
 }

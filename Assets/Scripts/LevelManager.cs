@@ -310,41 +310,25 @@ public class LevelManager : NetworkBehaviour
         }
     }
 
-    private void SpawnPlayer(Vector3 spawnPosition, GameObject prefab, ulong clientId)
+    private void SpawnPlayer(Vector3 spawnPosition, ulong clientId)
     {
         Debug.Log($"Instanciando jugador en {spawnPosition}");
-        if (prefab != null)
-        {
-            Debug.Log($"Instanciando jugador en {spawnPosition}");
-            // Crear una instancia del prefab en el punto especificado
-            GameObject player = Instantiate(prefab, spawnPosition, Quaternion.identity);
-            player.GetComponent<PlayerController>().clientID = clientId;
-            //Servidor spawnea los objetos como playerObject de otros dejo conectado porque elcliente no se da cuenta que lo tiene en propiedad
-            player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
-            SpawnPlayerClientRpc(clientId);
+        GameObject.FindGameObjectsWithTag("PlayableCharacter")[clientId].gameObject.transform.position = spawnPosition;
+        // Crear una instancia del prefab en el punto especificado
+        //GameObject player = Instantiate(prefab, spawnPosition, Quaternion.identity);
+        //Servidor spawnea los objetos como playerObject de otros dejo conectado porque elcliente no se da cuenta que lo tiene en propiedad
+        //player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
+        //player.GetComponent<PlayerController>().clientID.Value = clientId;
+
+        SpawnPlayerClientRpc(clientId);
            
-        }
-        else
-        {
-            Debug.LogError("Faltan referencias al prefab o al punto de aparici�n.");
-        }
     }
     [ClientRpc]
     private void SpawnPlayerClientRpc(ulong clientId)
     {
         if (NetworkManager.Singleton.LocalClientId != clientId) return;
-        GameObject player = new GameObject();
-        foreach (var obj in GameObject.FindGameObjectsWithTag("PlayableCharacter"))
-        {
-            if (obj.GetComponent<PlayerController>().clientID == NetworkManager.Singleton.LocalClientId)
-            {
-                PlayerController pc = obj.GetComponent<PlayerController>();
-                if (pc != null)
-                {
-                    player = pc.gameObject;
-                }
-            }
-        }
+        NetworkObject playerNetwork =  NetworkManager.Singleton.LocalClient.PlayerObject;
+        GameObject player = playerNetwork.gameObject;
         // Obtener la referencia a la c�mara principal
         Camera mainCamera = Camera.main;
 
@@ -395,7 +379,7 @@ public class LevelManager : NetworkBehaviour
         foreach (var client in NetworkManager.Singleton.ConnectedClients)
         {
             GameObject prefab = ((int)client.Key) % 2 == 0 ? playerPrefab : zombiePrefab;
-            SpawnPlayer(humanSpawnPoints[i], prefab, client.Key);
+            SpawnPlayer(humanSpawnPoints[i], client.Key);
             Debug.Log($"Personaje jugable instanciado en {humanSpawnPoints[i]}");
             i++;
         }
