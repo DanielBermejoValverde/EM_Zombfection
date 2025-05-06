@@ -25,7 +25,6 @@ public class MenuManager : MonoBehaviour
         NetworkManager.Singleton.StartHost();
         lobbyUI.SetActive(true);
         menuUI.SetActive(false); 
-        print("Host");
     }
 
     public void JoinGame()
@@ -33,7 +32,6 @@ public class MenuManager : MonoBehaviour
         NetworkManager.Singleton.StartClient();
         lobbyUI.SetActive(true);
         menuUI.SetActive(false); 
-        print("Player");
     }
 
 

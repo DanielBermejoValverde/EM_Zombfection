@@ -37,6 +37,8 @@ public class LevelManager : NetworkBehaviour
     private List<Vector3> humanSpawnPoints = new List<Vector3>();
     private List<Vector3> zombieSpawnPoints = new List<Vector3>();
 
+    public int totalCoinsCollected = 0;
+
     // Referencias a los elementos de texto en el canvas
     private TextMeshProUGUI humansText;
     private TextMeshProUGUI zombiesText;
@@ -423,22 +425,28 @@ public class LevelManager : NetworkBehaviour
         }
 
     }
-
+    public void CollectCoin(){
+        totalCoinsCollected++;
+    }
     private void HandleCoinBasedGameMode()
     {
-        if (isGameOver) return;
+        if (isGameOver || !IsServer) return;
 
         // Implementar la l�gica para el modo de juego basado en monedas
-        if (gameModeText != null && playerController != null)
+        if (gameModeText != null )
         {
-            gameModeText.text = $"{playerController.CoinsCollected}/{CoinsGenerated}";
-            if (playerController.CoinsCollected == CoinsGenerated)
+            gameModeText.text = $"{totalCoinsCollected}/{CoinsGenerated}";
+            UpdateCoinsUIClientRpc(totalCoinsCollected, CoinsGenerated);
+            if (totalCoinsCollected == CoinsGenerated)
             {
                 isGameOver = true;
             }
         }
     }
-
+    [ClientRpc]
+    private void UpdateCoinsUIClientRpc(int coinsCollected,int coinsGenerated){
+        gameModeText.text = $"{coinsCollected}/{coinsGenerated}";
+    }
     private void ShowGameOverPanel()
     {
         if (gameOverPanel != null)

@@ -7,7 +7,7 @@ public class PlayerController : NetworkBehaviour
     private TextMeshProUGUI coinText;
 
     [Header("Stats")]
-    public int CoinsCollected = 0;
+    public NetworkVariable<int> CoinsCollected;
 
     [Header("Character settings")]
     public bool isZombie = false; // Añadir una propiedad para el estado del jugador
@@ -46,7 +46,7 @@ public class PlayerController : NetworkBehaviour
             }
         }
 
-        UpdateCoinUI();
+        UpdateCoinUIClientRpc();
     }
 
     void Update()
@@ -93,18 +93,24 @@ public class PlayerController : NetworkBehaviour
 
     public void CoinCollected()
     {
-        if (!isZombie) // Solo los humanos pueden recoger monedas
+
+        if (!isZombie && IsServer) // Solo los humanos pueden recoger monedas, en teoria solo el 
         {
-            this.CoinsCollected++;
-            UpdateCoinUI();
+            this.CoinsCollected.Value++;
+            LevelManager levelManager = FindObjectOfType<LevelManager>();
+            if(levelManager != null)
+            {
+                levelManager.CollectCoin();
+            }
+            UpdateCoinUIClientRpc();
         }
     }
-
-    void UpdateCoinUI()
+    [ClientRpc]
+    void UpdateCoinUIClientRpc()
     {
         if (coinText != null)
         {
-            coinText.text = $"{CoinsCollected}";
+            coinText.text = $"{CoinsCollected.Value}";
         }
     }
     public override void OnNetworkSpawn(){
@@ -113,6 +119,7 @@ public class PlayerController : NetworkBehaviour
         }
         if (IsOwner)
         {
+        CoinsCollected.Value = 0;
         transform.SetParent(NetworkManager.Singleton.LocalClient.PlayerObject.transform);
         // Obtener la referencia a la c�mara principal
         Camera mainCamera = Camera.main;
