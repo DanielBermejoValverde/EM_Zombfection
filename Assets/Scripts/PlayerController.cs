@@ -69,10 +69,10 @@ public class PlayerController : NetworkBehaviour
         if (moveDirection == Vector3.zero) return;
 
         Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, 720f * Time.deltaTime);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, 720f * Time.fixedDeltaTime);
 
         float adjustedSpeed = isZombie ? moveSpeed * zombieSpeedModifier : moveSpeed;
-        transform.Translate(moveDirection * adjustedSpeed * Time.deltaTime, Space.World);
+        transform.Translate(moveDirection * adjustedSpeed * Time.fixedDeltaTime, Space.World);
     }
 
     void HandleAnimations()
