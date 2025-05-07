@@ -10,35 +10,30 @@ public class PlayerController : NetworkBehaviour
     public int CoinsCollected = 0;
 
     [Header("Character settings")]
-    public bool isZombie = false; // Añadir una propiedad para el estado del jugador
-    public string uniqueID; // Añadir una propiedad para el identificador único
+    public bool isZombie = false;
+    public string uniqueID;
 
     public NetworkVariable<ulong> clientID;
 
     [Header("Movement Settings")]
-    public float moveSpeed = 5f;           // Velocidad de movimiento
-    public float zombieSpeedModifier = 0.8f; // Modificador de velocidad para zombies
-    public Animator animator;              // Referencia al Animator
-    public Transform cameraTransform;      // Referencia a la cámara
+    public float moveSpeed = 5f;
+    public float zombieSpeedModifier = 0.8f;
+    public Animator animator;
+    public Transform cameraTransform;
 
-    private float horizontalInput;         // Entrada horizontal (A/D o flechas)
-    private float verticalInput;           // Entrada vertical (W/S o flechas)
+    private float horizontalInput;
+    private float verticalInput;
 
     void Start()
     {
-        CoinsCollected = 0;
         // Buscar el objeto "CanvasPlayer" en la escena
         GameObject canvas = GameObject.Find("CanvasPlayer");
 
         if (canvas != null)
         {
-            Debug.Log("Canvas encontrado");
-
-            // Buscar el Panel dentro del CanvasHud
             Transform panel = canvas.transform.Find("PanelHud");
             if (panel != null)
             {
-                // Buscar el TextMeshProUGUI llamado "CoinsValue" dentro del Panel
                 Transform coinTextTransform = panel.Find("CoinsValue");
                 if (coinTextTransform != null)
                 {
@@ -52,44 +47,38 @@ public class PlayerController : NetworkBehaviour
 
     void Update()
     {
-        // Leer entrada del teclado
+        if (!IsOwner) return;
+
         horizontalInput = Input.GetAxis("Horizontal");
         verticalInput = Input.GetAxis("Vertical");
 
-        // Mover el jugador
-        MovePlayer();
+        Vector2 input = new Vector2(horizontalInput, verticalInput);
+        if (input != Vector2.zero && cameraTransform != null)
+        {
+            Vector3 moveDirection = (cameraTransform.forward * input.y + cameraTransform.right * input.x).normalized;
+            moveDirection.y = 0f;
 
-        // Manejar las animaciones del jugador
-        HandleAnimations();
+            SubmitMoveDirectionServerRpc(moveDirection);
+        }
+
+        HandleAnimations(); // Animaciones siguen locales
     }
 
-    void MovePlayer()
+    [ServerRpc]
+    void SubmitMoveDirectionServerRpc(Vector3 moveDirection)
     {
-        if (cameraTransform == null) { return; }
+        if (moveDirection == Vector3.zero) return;
 
-        // Calcular la dirección de movimiento en relación a la cámara
-        Vector3 moveDirection = (cameraTransform.forward * verticalInput + cameraTransform.right * horizontalInput).normalized;
-        moveDirection.y = 0f; // Asegurarnos de que el movimiento es horizontal (sin componente Y)
+        Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, 720f * Time.fixedDeltaTime);
 
-        // Mover el jugador usando el Transform
-        if (moveDirection != Vector3.zero)
-        {
-            // Calcular la rotación en Y basada en la dirección del movimiento
-            Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, 720f * Time.deltaTime);
-
-            // Ajustar la velocidad si es zombie
-            float adjustedSpeed = isZombie ? moveSpeed * zombieSpeedModifier : moveSpeed;
-
-            // Mover al jugador en la dirección deseada
-            transform.Translate(moveDirection * adjustedSpeed * Time.deltaTime, Space.World);
-        }
+        float adjustedSpeed = isZombie ? moveSpeed * zombieSpeedModifier : moveSpeed;
+        transform.Translate(moveDirection * adjustedSpeed * Time.fixedDeltaTime, Space.World);
     }
 
     void HandleAnimations()
     {
-        // Animaciones basadas en la dirección del movimiento
-        animator.SetFloat("Speed", Mathf.Abs(horizontalInput) + Mathf.Abs(verticalInput));  // Controla el movimiento (caminar/correr)
+        animator.SetFloat("Speed", Mathf.Abs(horizontalInput) + Mathf.Abs(verticalInput));
     }
 
     public void CoinCollected()
@@ -114,44 +103,35 @@ public class PlayerController : NetworkBehaviour
             coinText.text = $"{CoinsCollected}";
         }
     }
-    public override void OnNetworkSpawn(){
-        if(IsServer){
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsServer)
+        {
             clientID.Value = OwnerClientId;
         }
+
         if (IsOwner)
         {
-        transform.SetParent(NetworkManager.Singleton.LocalClient.PlayerObject.transform);
-        // Obtener la referencia a la c�mara principal
-        Camera mainCamera = Camera.main;
+            transform.SetParent(NetworkManager.Singleton.LocalClient.PlayerObject.transform);
 
-        if (mainCamera != null)
-        {
-            // Obtener el script CameraController de la c�mara principal
-            CameraController cameraController = mainCamera.GetComponent<CameraController>();
+            Camera mainCamera = Camera.main;
 
-            if (cameraController != null)
+            if (mainCamera != null)
             {
-                Debug.Log($"CameraController encontrado en la c�mara principal.");
-                // Asignar el jugador al script CameraController
-                cameraController.player = this.gameObject.transform;
-            }
+                CameraController cameraController = mainCamera.GetComponent<CameraController>();
+                if (cameraController != null)
+                {
+                    cameraController.player = this.gameObject.transform;
+                }
 
-            Debug.Log($"C�mara principal encontrada en {mainCamera}");
-            // Obtener el componente PlayerController del jugador instanciado
-            // Asignar el transform de la c�mara al PlayerController
-                Debug.Log($"PlayerController encontrado en el jugador instanciado.");
-                this.enabled = true;
                 this.cameraTransform = mainCamera.transform;
-                //this.uniqueID = uniqueIdGenerator.GenerateUniqueID(); // Generar un identificador �nico
-
-        }
-        else
-        {
-            Debug.LogError("No se encontr� la c�mara principal.");
-        }
-        
-        
+                this.enabled = true;
+            }
+            else
+            {
+                Debug.LogError("No se encontró la cámara principal.");
+            }
         }
     }
 }
-
