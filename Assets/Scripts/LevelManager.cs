@@ -440,8 +440,13 @@ public class LevelManager : NetworkBehaviour
             if (totalCoinsCollected == CoinsGenerated)
             {
                 isGameOver = true;
+                GameOverClientRpc();
             }
         }
+    }
+    [ClientRpc]
+    private void GameOverClientRpc(){
+        isGameOver = true;
     }
     [ClientRpc]
     private void UpdateCoinsUIClientRpc(int coinsCollected,int coinsGenerated){
