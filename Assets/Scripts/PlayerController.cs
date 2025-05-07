@@ -16,6 +16,7 @@ public class PlayerController : NetworkBehaviour
     public NetworkVariable<ulong> clientID;
 
     [Header("Movement Settings")]
+    [SerializeField]
     public float moveSpeed = 5f;           // Velocidad de movimiento
     public float zombieSpeedModifier = 0.8f; // Modificador de velocidad para zombies
     public Animator animator;              // Referencia al Animator
@@ -23,6 +24,15 @@ public class PlayerController : NetworkBehaviour
 
     private float horizontalInput;         // Entrada horizontal (A/D o flechas)
     private float verticalInput;           // Entrada vertical (W/S o flechas)
+
+    [SerializeField]
+    private NetworkVariable<float> forwardBackPosition = new NetworkVariable<float>();
+    [SerializeField]
+    private NetworkVariable<float> leftRightPosition = new NetworkVariable<float>();
+
+    //cliente;
+    private float oldforwardBackPosition;
+    private float oldleftRightPosition;
 
     void Start()
     {
@@ -52,16 +62,68 @@ public class PlayerController : NetworkBehaviour
     void Update()
     {
         // Leer entrada del teclado
-        horizontalInput = Input.GetAxis("Horizontal");
-        verticalInput = Input.GetAxis("Vertical");
+        //horizontalInput = Input.GetAxis("Horizontal");
+        //verticalInput = Input.GetAxis("Vertical");
 
         // Mover el jugador
-        MovePlayer();
+        //MovePlayer();
+        if (IsServer)
+        {
+            UpdateServer();
+        }
+        if(IsClient && IsOwner)
+        {
+            UpdateClient();
+        }
+
 
         // Manejar las animaciones del jugador
         HandleAnimations();
     }
+    private void UpdateServer()
+    {
+        Debug.Log("estoy actualizando");
+        transform.position = new Vector3(transform.position.x + leftRightPosition.Value, transform.position.y, transform.position.z + forwardBackPosition.Value);
+    }
+    private void UpdateClient()
+    {
+        
+        float fowardBackward = 0;
+        float leftRight = 0;
+        if (Input.GetKey(KeyCode.W))
+        {
+            
+            fowardBackward += moveSpeed;
+        }
+        if (Input.GetKey(KeyCode.S))
+        {
+            fowardBackward -= moveSpeed;
+        }
+        if (Input.GetKey(KeyCode.A))
+        {
+            leftRight += moveSpeed;
+        }
+        if (Input.GetKey(KeyCode.D))
+        {
+            leftRight -= moveSpeed;
+        }
+        if(oldforwardBackPosition != fowardBackward || oldleftRightPosition != leftRight)
+        {
+            oldforwardBackPosition = fowardBackward;
+            oldleftRightPosition = leftRight;
+            Debug.Log(fowardBackward + leftRight);
+            //Actualizamos el server
+            UpdateClientPositionServerRpc( fowardBackward,  leftRight);
+        }
+    }
 
+    [ServerRpc]
+    public void UpdateClientPositionServerRpc(float fowardBackward, float leftRight)
+    {
+        
+        forwardBackPosition.Value = fowardBackward;
+        leftRightPosition.Value = leftRight;
+    }
     void MovePlayer()
     {
         if (cameraTransform == null) { return; }

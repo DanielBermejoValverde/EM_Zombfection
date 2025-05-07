@@ -191,10 +191,14 @@ MonoBehaviour:
   uniqueID: El Inmortal Espectro de Dune
   clientID:
     m_InternalValue: 0
-  moveSpeed: 5
+  moveSpeed: 1
   zombieSpeedModifier: 0.8
   animator: {fileID: 370896438650836429}
   cameraTransform: {fileID: 0}
+  forwardBackPosition:
+    m_InternalValue: 0
+  leftRightPosition:
+    m_InternalValue: 0
 --- !u!114 &5602454232279618239
 MonoBehaviour:
   m_ObjectHideFlags: 0
