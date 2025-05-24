@@ -12,9 +12,10 @@ public class LobbyManager : NetworkBehaviour
 
     private void Awake()
     {
-        
+        //readyButton = GameObject.Find("ReadyButton")?.GetComponent<Button>();
+
     }
-    
+
     public override void OnNetworkSpawn()
     {
         if (IsServer)
@@ -58,11 +59,22 @@ public class LobbyManager : NetworkBehaviour
     {
         playerReadyStatus.Remove(clientId);
         UpdateLobbyUI();
+
+        /*if (readyButton != null)
+            {
+                readyButton.gameObject.SetActive(false);
+            }*/
     }
 
     public void SetPlayerReady()
     {
             SubmitReadyServerRpc(NetworkManager.Singleton.LocalClientId, true);
+
+        // Desactiva el botón una vez se ha pulsado
+        //if (readyButton != null)
+        //{
+        //   readyButton.interactable = false;
+        //}
     }
     [ServerRpc(RequireOwnership = false)]
     private void SubmitReadyServerRpc(ulong playerId, bool isReady)
@@ -72,6 +84,10 @@ public class LobbyManager : NetworkBehaviour
         CheckReadyState();
         SubmitReadyClientRpc(playerId,isReady);
         UpdateLobbyUI();
+
+        /*if (IsOwner && readyButton != null)
+        readyButton.gameObject.SetActive(false);
+        */
     }
     [ClientRpc]
     private void SubmitReadyClientRpc(ulong playerId, bool isReady)
@@ -92,6 +108,11 @@ public class LobbyManager : NetworkBehaviour
         {
             NetworkManager.Singleton.SceneManager.LoadScene("GameScene", LoadSceneMode.Single);
         }
+
+        /*if (readyButton != null)
+{
+    readyButton.gameObject.SetActive(false);
+}*/
     }
 
     private void UpdateLobbyUI()

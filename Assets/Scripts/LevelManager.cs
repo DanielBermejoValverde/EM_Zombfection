@@ -29,9 +29,9 @@ public class LevelManager : NetworkBehaviour
 
     [Header("Game Mode Settings")]
     [Tooltip("Selecciona el modo de juego")]
-    [SerializeField] private GameMode gameMode;
+    //[SerializeField] private GameMode gameMode;
 
-    [Tooltip("Tiempo de partida en minutos para el modo tiempo")]
+    //[Tooltip("Tiempo de partida en minutos para el modo tiempo")]
     [SerializeField] private int minutes = 5;
 
     private List<Vector3> humanSpawnPoints = new List<Vector3>();
@@ -56,6 +56,8 @@ public class LevelManager : NetworkBehaviour
 
     private float remainingSeconds;
     private bool isGameOver = false;
+    private GameMode selectedGameMode = GameMode.Tiempo; // Valor por defecto
+
 
     public GameObject gameOverPanel; // Asigna el panel desde el inspector
 
@@ -122,6 +124,18 @@ public class LevelManager : NetworkBehaviour
             CoinsGenerated = levelBuilder.GetCoinsGenerated();
         }
 
+        //Buscar el GameModeSelectorUI en la escena
+        GameModeSelectorUI selector = FindObjectOfType<GameModeSelectorUI>();
+        if (selector != null)
+        {
+            selectedGameMode = selector.GetSelectedGameMode();
+            Debug.Log("Modo de juego cargado desde selector: " + selectedGameMode);
+        }
+        else
+        {
+            Debug.LogWarning("No se encontró el GameModeSelectorUI. Usando modo por defecto: Tiempo");
+        }
+
         SpawnTeams();
         
         UpdateTeamUI();
@@ -129,12 +143,12 @@ public class LevelManager : NetworkBehaviour
 
     private void Update()
     {
-        if (gameMode == GameMode.Tiempo)
+        if (selectedGameMode == GameMode.Tiempo)
         {
             // L�gica para el modo de juego basado en tiempo
             HandleTimeLimitedGameMode();
         }
-        else if (gameMode == GameMode.Monedas)
+        else if (selectedGameMode == GameMode.Monedas)
         {
             // L�gica para el modo de juego basado en monedas
             HandleCoinBasedGameMode();

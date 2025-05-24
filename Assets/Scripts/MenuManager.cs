@@ -12,6 +12,10 @@ public class MenuManager : MonoBehaviour
         Time.timeScale = 1f; // Aseg�rate de que el tiempo est� restaurado al cargar la escena
         lobbyUI = GameObject.Find("LobbyUI");
         menuUI = GameObject.Find("MenuUI");
+
+     /*GameObject readyButton = GameObject.Find("ReadyButton");
+     if (readyButton != null)
+     readyButton.SetActive(false); // Ocultar el botón al iniciar */
     }
 
     public void StartGame()
@@ -24,14 +28,28 @@ public class MenuManager : MonoBehaviour
     {
         NetworkManager.Singleton.StartHost();
         lobbyUI.SetActive(true);
-        menuUI.SetActive(false); 
+        menuUI.SetActive(false);
+
+        /*GameObject readyButton = GameObject.Find("ReadyButton");
+        if (readyButton != null)
+            readyButton.SetActive(true); // Mostrar botón Ready*/
+
+        /*GameObject selector = GameObject.Find("GameModeSelector");
+        if (selector != null) selector.SetActive(true); // mostrar solo para el host*/
     }
 
     public void JoinGame()
     {
         NetworkManager.Singleton.StartClient();
         lobbyUI.SetActive(true);
-        menuUI.SetActive(false); 
+        menuUI.SetActive(false);
+
+        /*GameObject readyButton = GameObject.Find("ReadyButton");
+        if (readyButton != null)
+            readyButton.SetActive(true); // Mostrar botón Ready*/
+
+        /*GameObject selector = GameObject.Find("GameModeSelector");
+        if (selector != null) selector.SetActive(false); // ocultar para clientes*/
     }
 
 
@@ -42,5 +60,9 @@ public class MenuManager : MonoBehaviour
 #else
             Application.Quit(); // Salir en una build
 #endif
+
+        /*GameObject readyButton = GameObject.Find("ReadyButton");
+        if (readyButton != null)
+            readyButton.SetActive(false);*/
     }
 }
