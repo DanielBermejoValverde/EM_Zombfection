@@ -316,6 +316,8 @@ public class LevelBuilder : NetworkBehaviour
     /// </summary>
     private bool ShouldPlaceCoin()
     {
+        if(GameObject.Find("LevelManager").GetComponent<LevelManager>().gameMode == GameMode.Tiempo)
+            return false;
         float randomValue = Random.Range(0, 100);
         return randomValue < coinsDensity;
     }

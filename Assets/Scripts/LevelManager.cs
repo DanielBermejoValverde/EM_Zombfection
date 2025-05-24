@@ -22,14 +22,14 @@ public class LevelManager : NetworkBehaviour
 
     [Header("Team Settings")]
     [Tooltip("N�mero de jugadores humanos")]
-    [SerializeField] private int numberOfHumans = 2;
+    [SerializeField] private int numberOfHumans = 0;
 
     [Tooltip("N�mero de zombis")]
-    [SerializeField] private int numberOfZombies = 2;
+    [SerializeField] private int numberOfZombies = 0;
 
     [Header("Game Mode Settings")]
     [Tooltip("Selecciona el modo de juego")]
-    [SerializeField] private GameMode gameMode;
+    [SerializeField] public GameMode gameMode;
 
     [Tooltip("Tiempo de partida en minutos para el modo tiempo")]
     [SerializeField] private int minutes = 5;
@@ -123,8 +123,8 @@ public class LevelManager : NetworkBehaviour
         }
 
         SpawnTeams();
-        
-        UpdateTeamUI();
+        if(IsServer)
+            UpdateTeamUIClientRpc(numberOfHumans,numberOfZombies);
     }
 
     private void Update()
@@ -139,7 +139,7 @@ public class LevelManager : NetworkBehaviour
             // L�gica para el modo de juego basado en monedas
             HandleCoinBasedGameMode();
         }
-
+        /* De momento no lo requerimos
         if (Input.GetKeyDown(KeyCode.Z)) // Presiona "Z" para convertirte en Zombie
         {
             // Comprobar si el jugador actual est� usando el prefab de humano
@@ -166,7 +166,9 @@ public class LevelManager : NetworkBehaviour
                 Debug.Log("El jugador actual no es un zombie.");
             }
         }
-        UpdateTeamUI();
+        */
+        if(IsServer)
+            UpdateTeamUIClientRpc(numberOfHumans,numberOfZombies);
 
         if (isGameOver)
         {
@@ -204,6 +206,8 @@ public class LevelManager : NetworkBehaviour
         PlayerController zombieController = zombie.GetComponent<PlayerController>();
         zombieController.isZombie = true;
         zombieController.clientID.Value = clientId;
+        numberOfHumans--; // Aumentar el n�mero de humanos
+        numberOfZombies++; // Reducir el n�mero de zombis
     }
 
 
@@ -301,6 +305,8 @@ public class LevelManager : NetworkBehaviour
         foreach (var client in NetworkManager.Singleton.ConnectedClients)
         {
             GameObject prefab = ((int)client.Key) % 2 == 0 ? playerPrefab : zombiePrefab;
+            numberOfHumans+=((int)client.Key) % 2 == 0 ? 1 : 0;
+            numberOfZombies+=((int)client.Key) % 2 == 0 ? 0 : 1;
             SpawnPlayer(humanSpawnPoints[i],prefab, client.Key);
             Debug.Log($"Personaje jugable instanciado en {humanSpawnPoints[i]}");
             i++;
@@ -339,17 +345,17 @@ public class LevelManager : NetworkBehaviour
             Debug.Log($"Personaje no jugable instanciado en {spawnPosition}");
         }
     }
-
-    private void UpdateTeamUI()
+    [ClientRpc]
+    private void UpdateTeamUIClientRpc(int numberOfHumanss, int numberOfZombiess)
     {
         if (humansText != null)
         {
-            humansText.text = $"{numberOfHumans}";
+            humansText.text = $"{numberOfHumanss}";
         }
 
         if (zombiesText != null)
         {
-            zombiesText.text = $"{numberOfZombies}";
+            zombiesText.text = $"{numberOfZombiess}";
         }
     }
 
