@@ -45,7 +45,7 @@ public class PlayerController : NetworkBehaviour
         UpdateCoinUIClientRpc(0);
     }
 
-    void Update()
+    void FixedUpdate()
     {
         if (!IsOwner) return;
 
