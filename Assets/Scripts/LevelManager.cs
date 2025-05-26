@@ -503,6 +503,7 @@ public class LevelManager : NetworkBehaviour
         Cursor.visible = false; // Oculta el cursor
 
         // Cargar la escena del men� principal
+        menuManager.isGame = false;
         SceneManager.LoadScene("MenuScene"); // Cambia "MenuScene" por el nombre de tu escena principal
     }
 
