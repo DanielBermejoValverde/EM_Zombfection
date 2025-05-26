@@ -788,6 +788,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerLobbyPrefab: {fileID: 2597691392884287684, guid: d8bd5f96acc1e6c469727d637a0a81d7, type: 3}
+  readyButton: {fileID: 0}
 --- !u!114 &369697655
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -961,12 +962,12 @@ GameObject:
   - component: {fileID: 421392535}
   - component: {fileID: 421392534}
   m_Layer: 5
-  m_Name: QuitLobbyButton
+  m_Name: ReadyButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &421392533
 RectTransform:
   m_ObjectHideFlags: 0
@@ -984,7 +985,11 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
+<<<<<<< Updated upstream
   m_AnchoredPosition: {x: 429.1, y: -413.2}
+=======
+  m_AnchoredPosition: {x: 394.8, y: -352}
+>>>>>>> Stashed changes
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &421392534
@@ -1233,7 +1238,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &504844542
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2301,7 +2306,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -105.92331, y: -66.42107}
+  m_AnchoredPosition: {x: -105.92331, y: -70}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1362476383
@@ -2841,6 +2846,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lobbyUI: {fileID: 0}
   menuUI: {fileID: 0}
+  readyButton: {fileID: 421392532}
 --- !u!114 &1661791418
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2854,6 +2860,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerLobbyPrefab: {fileID: 0}
+<<<<<<< Updated upstream
 --- !u!1 &1720618062
 GameObject:
   m_ObjectHideFlags: 0
@@ -2987,6 +2994,9 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1720618062}
   m_CullTransparentMesh: 1
+=======
+  readyButton: {fileID: 421392532}
+>>>>>>> Stashed changes
 --- !u!1 &1820737505
 GameObject:
   m_ObjectHideFlags: 0

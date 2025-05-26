@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -9,6 +10,8 @@ public class LobbyManager : NetworkBehaviour
     private Dictionary<ulong, bool> playerReadyStatus = new();
 
     public GameObject playerLobbyPrefab;
+    public GameObject readyButton;
+
 
     private void Awake()
     {
@@ -68,6 +71,7 @@ public class LobbyManager : NetworkBehaviour
 
     public void SetPlayerReady()
     {
+<<<<<<< Updated upstream
             SubmitReadyServerRpc(NetworkManager.Singleton.LocalClientId, true);
 
         // Desactiva el botón una vez se ha pulsado
@@ -75,6 +79,23 @@ public class LobbyManager : NetworkBehaviour
         //{
         //   readyButton.interactable = false;
         //}
+=======
+        ulong playerId = NetworkManager.Singleton.LocalClientId;
+        bool wasReady = playerReadyStatus.ContainsKey(playerId) && playerReadyStatus[playerId];
+        bool newReadyState = !wasReady;
+
+        SubmitReadyServerRpc(playerId, newReadyState);
+
+        // Actualizar texto del botón del jugador local
+        if (IsOwner && readyButton != null)
+        {
+            TMP_Text buttonText = readyButton.GetComponentInChildren<TMP_Text>();
+            if (buttonText != null)
+            {
+                buttonText.text = newReadyState ? "Not Ready" : "Ready";
+            }
+        }
+>>>>>>> Stashed changes
     }
     [ServerRpc(RequireOwnership = false)]
     private void SubmitReadyServerRpc(ulong playerId, bool isReady)

@@ -6,6 +6,7 @@ public class MenuManager : MonoBehaviour
 {
     public GameObject lobbyUI;
     public GameObject menuUI;
+    public GameObject readyButton;
 
     public void Awake()
     {
@@ -30,12 +31,17 @@ public class MenuManager : MonoBehaviour
         lobbyUI.SetActive(true);
         menuUI.SetActive(false);
 
+<<<<<<< Updated upstream
         /*GameObject readyButton = GameObject.Find("ReadyButton");
         if (readyButton != null)
             readyButton.SetActive(true); // Mostrar botón Ready*/
 
         /*GameObject selector = GameObject.Find("GameModeSelector");
         if (selector != null) selector.SetActive(true); // mostrar solo para el host*/
+=======
+        readyButton.SetActive(true);
+
+>>>>>>> Stashed changes
     }
 
     public void JoinGame()
@@ -44,12 +50,17 @@ public class MenuManager : MonoBehaviour
         lobbyUI.SetActive(true);
         menuUI.SetActive(false);
 
+<<<<<<< Updated upstream
         /*GameObject readyButton = GameObject.Find("ReadyButton");
         if (readyButton != null)
             readyButton.SetActive(true); // Mostrar botón Ready*/
 
         /*GameObject selector = GameObject.Find("GameModeSelector");
         if (selector != null) selector.SetActive(false); // ocultar para clientes*/
+=======
+        if (readyButton != null)
+            readyButton.gameObject.SetActive(true);
+>>>>>>> Stashed changes
     }
 
 
