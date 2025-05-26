@@ -433,6 +433,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerLobbyPrefab: {fileID: 2597691392884287684, guid: d8bd5f96acc1e6c469727d637a0a81d7, type: 3}
+  menuUI: {fileID: 0}
+  lobbyUI: {fileID: 0}
+  playerUI: {fileID: 0}
+  isGame: 0
+  self: {fileID: 0}
+  gameMode: 1
 --- !u!114 &369697655
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -606,7 +612,7 @@ GameObject:
   - component: {fileID: 421392535}
   - component: {fileID: 421392534}
   m_Layer: 5
-  m_Name: QuitLobbyButton
+  m_Name: ReadyButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1855,7 +1861,7 @@ GameObject:
   - component: {fileID: 1661791417}
   - component: {fileID: 1661791418}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: CanvasUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1961,6 +1967,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lobbyUI: {fileID: 0}
   menuUI: {fileID: 0}
+  isGame: 0
+  gameMode: 1
 --- !u!114 &1661791418
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1974,6 +1982,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerLobbyPrefab: {fileID: 0}
+  menuUI: {fileID: 0}
+  lobbyUI: {fileID: 0}
+  playerUI: {fileID: 0}
+  isGame: 0
+  self: {fileID: 0}
+  gameMode: 1
 --- !u!1 &1820737505
 GameObject:
   m_ObjectHideFlags: 0

@@ -1966,7 +1966,7 @@ MonoBehaviour:
   numberOfHumans: 0
   numberOfZombies: 0
   gameMode: 0
-  minutes: 1
+  minutes: 0
   totalCoinsCollected: 0
   gameOverPanel: {fileID: 861340988}
 --- !u!4 &1720106049

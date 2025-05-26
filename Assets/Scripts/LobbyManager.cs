@@ -9,12 +9,37 @@ public class LobbyManager : NetworkBehaviour
     private Dictionary<ulong, bool> playerReadyStatus = new();
 
     public GameObject playerLobbyPrefab;
+    public GameObject canvasUI;
+    public GameObject lobbyUI;
+    public GameObject playerUI;
+
+    public bool isGame = false;
+
+    public LobbyManager self;
+
+    public GameMode gameMode = GameMode.Monedas;
 
     private void Awake()
     {
-        
+        if(self == null)
+        {
+            self = this;
+            DontDestroyOnLoad(gameObject);
+            SceneManager.sceneLoaded += OnSceneLoaded;
+            //lobbyUI = GameObject.Find("LobbyUI");
+            canvasUI = GameObject.Find("CanvasUI");
+            //playerUI = GameObject.Find("PlayerUI");
+        }
+        else
+        {
+            Destroy(this);
+        }
     }
-    
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (isGame) return;
+        //lobbyUI.SetActive(true);
+    }
     public override void OnNetworkSpawn()
     {
         if (IsServer)
@@ -91,6 +116,9 @@ public class LobbyManager : NetworkBehaviour
         if (readyCount == playerReadyStatus.Count)
         {
             NetworkManager.Singleton.SceneManager.LoadScene("GameScene", LoadSceneMode.Single);
+            canvasUI.GetComponent<MenuManager>().isGame = true;
+            canvasUI.GetComponent<MenuManager>().ClearCanvas();
+            ResetReady();
         }
     }
 
@@ -107,6 +135,13 @@ public class LobbyManager : NetworkBehaviour
         {
             GameObject playerLobby = Instantiate(playerLobbyPrefab, transform);
             playerLobby.GetComponent<PlayerLobbyManager>().SetInfo("Player " + player.Key, player.Value);
+        }
+    }
+    public void ResetReady()
+    {
+        foreach(ulong key in playerReadyStatus.Keys)
+        {
+            playerReadyStatus[key] = false;
         }
     }
 }
