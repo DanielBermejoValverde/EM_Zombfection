@@ -66,6 +66,7 @@ public class LevelManager : NetworkBehaviour
 
     public GameObject gameOverPanel; // Asigna el panel desde el inspector
 
+    public static LevelManager Instance { get; private set; }
     #endregion
 
     #region Unity game loop methods
@@ -86,25 +87,27 @@ public class LevelManager : NetworkBehaviour
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
     }
 
-    private void OnClientDisconnected(ulong clientId)
+    public void OnClientDisconnected(ulong clientId)
     {
         bool isZombie = false;
         foreach (var player in GameObject.FindObjectsOfType<PlayerController>())
         {
-            if(clientId == player.GetComponent<NetworkObject>().OwnerClientId)
+            if (clientId == player.GetComponent<NetworkObject>().OwnerClientId)
             {
                 isZombie = player.GetComponent<PlayerController>().isZombie;
                 break;
             }
         }
-        if (!isZombie) 
+
+        if (!isZombie)
         {
             lock (lockHumans)
             {
                 numberOfHumans--;
-                if (numberOfHumans == 0) 
+                if (numberOfHumans == 0)
                 {
-                    //Lanzar gamover por abandono de humanos
+                    isGameOver = true;
+                    GameOverClientRpc();
                 }
             }
         }
@@ -115,11 +118,13 @@ public class LevelManager : NetworkBehaviour
                 numberOfZombies--;
                 if (numberOfZombies == 0)
                 {
-                    //Lanzar gamover por abandono de humanos
+                    isGameOver = true;
+                    GameOverClientRpc();
                 }
             }
         }
     }
+
 
     private void Start()
     {

@@ -1,15 +1,15 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Unity.Netcode;
 
 public class PauseMenu : MonoBehaviour
 {
-    public GameObject pausePanel; // Asigna el panel desde el inspector
+    public GameObject pausePanel;
 
     private bool isPaused = false;
 
     void Update()
     {
-        // Detecta si el jugador presiona la tecla Escape o Pausa
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             if (isPaused)
@@ -26,29 +26,39 @@ public class PauseMenu : MonoBehaviour
     public void PauseGame()
     {
         isPaused = true;
-        pausePanel.SetActive(true); // Muestra el panel de pausa
-        Time.timeScale = 0f; // Detiene el tiempo en el juego
-
-        // Gestión del cursor
-        Cursor.lockState = CursorLockMode.None; // Desbloquea el cursor
-        Cursor.visible = true; // Hace visible el cursor
+        pausePanel.SetActive(true);
+        Time.timeScale = 0f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     public void ResumeGame()
     {
         isPaused = false;
-        pausePanel.SetActive(false); // Oculta el panel de pausa
-        Time.timeScale = 1f; // Reactiva el tiempo en el juego
-
-        // Gestión del cursor
-        Cursor.lockState = CursorLockMode.Locked; // Bloquea el cursor
-        Cursor.visible = false; // Oculta el cursor
+        pausePanel.SetActive(false);
+        Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
-
     public void QuitGame()
     {
-        // Opcional: Asegúrate de que el tiempo está restaurado antes de salir
         Time.timeScale = 1f;
-        SceneManager.LoadScene("MenuScene"); // Cambia "MainMenu" por el nombre de tu escena principal
+
+
+        NetworkManager.Singleton.Shutdown();
+       
+
+        // Cargar la escena del menú principal
+        SceneManager.LoadScene("MenuScene");
     }
+
+
+    //[ServerRpc(RequireOwnership = false)]
+    //private void NotifyServerOfQuitServerRpc(ulong clientId)
+    //{
+    //    if (LevelManager.Instance != null)
+    //    {
+    //        LevelManager.Instance.OnClientDisconnected(clientId);
+    //    }
+    //}
 }
