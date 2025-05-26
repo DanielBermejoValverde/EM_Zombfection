@@ -9,6 +9,8 @@ public class PlayerController : NetworkBehaviour
     [Header("Stats")]
     public int CoinsCollected = 0;
 
+    Object lockMoneda = new Object();
+
     [Header("Character settings")]
     public bool isZombie = false;
     public string uniqueID;
@@ -84,7 +86,7 @@ public class PlayerController : NetworkBehaviour
     public void CoinCollected()
     {
 
-        if (!isZombie && IsServer) // Solo los humanos pueden recoger monedas, en teoria solo el 
+        if (!isZombie && IsServer) // Solo los humanos pueden recoger monedas, en solo el server ejecutara la accion de mandar al levelmanager que se ha recogido una moneda 
         {
             LevelManager levelManager = FindObjectOfType<LevelManager>();
             if(levelManager != null)
@@ -96,8 +98,11 @@ public class PlayerController : NetworkBehaviour
     }
     [ClientRpc]
     void UpdateCoinUIClientRpc(int coinCollected)
-    {   
-        CoinsCollected += coinCollected;
+    {
+        lock (lockMoneda)
+        {
+            CoinsCollected += coinCollected;
+        }
         if (coinText != null)
         {
             coinText.text = $"{CoinsCollected}";

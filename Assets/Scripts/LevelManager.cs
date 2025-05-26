@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Unity.Netcode;
+using Object = System.Object;
 
 public enum GameMode
 {
@@ -24,8 +25,12 @@ public class LevelManager : NetworkBehaviour
     [Tooltip("N�mero de jugadores humanos")]
     [SerializeField] private int numberOfHumans = 0;
 
+    Object lockHumans = new Object();
+
     [Tooltip("N�mero de zombis")]
     [SerializeField] private int numberOfZombies = 0;
+
+    Object lockZombies = new Object();
 
     [Header("Game Mode Settings")]
     [Tooltip("Selecciona el modo de juego")]
@@ -35,9 +40,11 @@ public class LevelManager : NetworkBehaviour
     [SerializeField] private int minutes = 5;
 
     private List<Vector3> humanSpawnPoints = new List<Vector3>();
-    private List<Vector3> zombieSpawnPoints = new List<Vector3>();
+    //private List<Vector3> zombieSpawnPoints = new List<Vector3>();
 
     public int totalCoinsCollected = 0;
+
+    Object lockMonedas = new Object();
 
     // Referencias a los elementos de texto en el canvas
     private TextMeshProUGUI humansText;
@@ -75,6 +82,43 @@ public class LevelManager : NetworkBehaviour
 
 
         Time.timeScale = 1f; // Asegurarse de que el tiempo no est� detenido
+
+        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+    }
+
+    private void OnClientDisconnected(ulong clientId)
+    {
+        bool isZombie = false;
+        foreach (var player in GameObject.FindObjectsOfType<PlayerController>())
+        {
+            if(clientId == player.GetComponent<NetworkObject>().OwnerClientId)
+            {
+                isZombie = player.GetComponent<PlayerController>().isZombie;
+                break;
+            }
+        }
+        if (!isZombie) 
+        {
+            lock (lockHumans)
+            {
+                numberOfHumans--;
+                if (numberOfHumans == 0) 
+                {
+                    //Lanzar gamover por abandono de humanos
+                }
+            }
+        }
+        else
+        {
+            lock (lockZombies)
+            {
+                numberOfZombies--;
+                if (numberOfZombies == 0)
+                {
+                    //Lanzar gamover por abandono de humanos
+                }
+            }
+        }
     }
 
     private void Start()
@@ -118,7 +162,7 @@ public class LevelManager : NetworkBehaviour
         {
             if(IsServer)levelBuilder.Build();
             humanSpawnPoints = levelBuilder.GetHumanSpawnPoints();
-            zombieSpawnPoints = levelBuilder.GetZombieSpawnPoints();
+            //zombieSpawnPoints = levelBuilder.GetZombieSpawnPoints();
             CoinsGenerated = levelBuilder.GetCoinsGenerated();
         }
 
@@ -206,8 +250,16 @@ public class LevelManager : NetworkBehaviour
         PlayerController zombieController = zombie.GetComponent<PlayerController>();
         zombieController.isZombie = true;
         zombieController.clientID.Value = clientId;
-        numberOfHumans--; // Aumentar el n�mero de humanos
-        numberOfZombies++; // Reducir el n�mero de zombis
+        lock (lockZombies)
+        {
+            numberOfZombies++; // Aumentar el n�mero de zombis
+
+        }
+        lock (lockHumans) 
+        {
+            //Comprobar si es el último humano para dar el Game Over total a ese humano
+            numberOfHumans--; // Reducir el n�mero de humanos
+        }
     }
 
 
@@ -305,8 +357,14 @@ public class LevelManager : NetworkBehaviour
         foreach (var client in NetworkManager.Singleton.ConnectedClients)
         {
             GameObject prefab = ((int)client.Key) % 2 == 0 ? playerPrefab : zombiePrefab;
-            numberOfHumans+=((int)client.Key) % 2 == 0 ? 1 : 0;
-            numberOfZombies+=((int)client.Key) % 2 == 0 ? 0 : 1;
+            lock (lockHumans)
+            {
+                numberOfHumans += ((int)client.Key) % 2 == 0 ? 1 : 0;
+            }
+            lock (lockZombies)
+            {
+                numberOfZombies += ((int)client.Key) % 2 == 0 ? 0 : 1;
+            }
             SpawnPlayer(humanSpawnPoints[i],prefab, client.Key);
             Debug.Log($"Personaje jugable instanciado en {humanSpawnPoints[i]}");
             i++;
@@ -389,8 +447,12 @@ public class LevelManager : NetworkBehaviour
         }
 
     }
-    public void CollectCoin(){
-        totalCoinsCollected++;
+    public void CollectCoin()
+    {
+        lock (lockMonedas)
+        {
+            totalCoinsCollected++;
+        }
     }
     private void HandleCoinBasedGameMode()
     {
