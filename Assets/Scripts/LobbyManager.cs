@@ -9,12 +9,27 @@ public class LobbyManager : NetworkBehaviour
     private Dictionary<ulong, bool> playerReadyStatus = new();
 
     public GameObject playerLobbyPrefab;
+    public GameObject canvasUI;
+
+    public LobbyManager self;
+
+    public GameMode gameMode = GameMode.Monedas;
 
     private void Awake()
     {
-        
+        if (self == null)
+        {
+            self = this;
+            DontDestroyOnLoad(gameObject);
+            //lobbyUI = GameObject.Find("LobbyUI");
+            canvasUI = GameObject.Find("CanvasUI");
+            //playerUI = GameObject.Find("PlayerUI");
+        }
+        else
+        {
+            Destroy(this);
+        }
     }
-    
     public override void OnNetworkSpawn()
     {
         if (IsServer)
@@ -22,8 +37,17 @@ public class LobbyManager : NetworkBehaviour
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
         }
+            SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        foreach (ulong key in playerReadyStatus.Keys)
+        {
+            playerReadyStatus[key] = false;
+        }
+        UpdateLobbyUI();
+    }
     private void OnClientConnected(ulong clientId)
     {
         ClientConectedServerRpc(clientId);
@@ -34,14 +58,14 @@ public class LobbyManager : NetworkBehaviour
     {
         playerReadyStatus[playerId] = false;
         foreach (var key in new List<ulong>(playerReadyStatus.Keys))
-            {
-                var value = playerReadyStatus[key];
-                ClientConectedClientRpc(key, value);
-            }
+        {
+            var value = playerReadyStatus[key];
+            ClientConectedClientRpc(key, value);
+        }
     }
 
     [ClientRpc]
-    private void ClientConectedClientRpc(ulong playerId,bool isReady)
+    private void ClientConectedClientRpc(ulong playerId, bool isReady)
     {
         playerReadyStatus[playerId] = isReady;
         UpdateLobbyUI();
@@ -62,15 +86,15 @@ public class LobbyManager : NetworkBehaviour
 
     public void SetPlayerReady()
     {
-            SubmitReadyServerRpc(NetworkManager.Singleton.LocalClientId, true);
+        SubmitReadyServerRpc(NetworkManager.Singleton.LocalClientId, true);
     }
     [ServerRpc(RequireOwnership = false)]
     private void SubmitReadyServerRpc(ulong playerId, bool isReady)
     {
-        if(!IsServer)return;
+        if (!IsServer) return;
         playerReadyStatus[playerId] = isReady;
         CheckReadyState();
-        SubmitReadyClientRpc(playerId,isReady);
+        SubmitReadyClientRpc(playerId, isReady);
         UpdateLobbyUI();
     }
     [ClientRpc]
@@ -90,6 +114,9 @@ public class LobbyManager : NetworkBehaviour
 
         if (readyCount == playerReadyStatus.Count)
         {
+            ResetReadyClientRpc();
+            
+            
             NetworkManager.Singleton.SceneManager.LoadScene("GameScene", LoadSceneMode.Single);
         }
     }
@@ -108,5 +135,11 @@ public class LobbyManager : NetworkBehaviour
             GameObject playerLobby = Instantiate(playerLobbyPrefab, transform);
             playerLobby.GetComponent<PlayerLobbyManager>().SetInfo("Player " + player.Key, player.Value);
         }
+    }
+    [ClientRpc]
+    public void ResetReadyClientRpc()
+    {
+        canvasUI.GetComponent<MenuManager>().isGame = true;
+        canvasUI.GetComponent<MenuManager>().ClearCanvas();
     }
 }

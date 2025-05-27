@@ -56,6 +56,8 @@ public class LevelManager : NetworkBehaviour
     private TextMeshProUGUI zombiesText;
     private TextMeshProUGUI gameModeText;
 
+    private MenuManager menuManager;
+
     private int CoinsGenerated = 0;
 
     public string PlayerPrefabName => playerPrefab.name;
@@ -79,6 +81,9 @@ public class LevelManager : NetworkBehaviour
     private void Awake()
     {
         Debug.Log("Despertando el nivel");
+        menuManager = GameObject.Find("CanvasUI").GetComponent<MenuManager>();
+
+        gameMode = menuManager.gameMode;
 
         // Obtener la referencia al UniqueIDGenerator
         uniqueIdGenerator = GetComponent<UniqueIdGenerator>();
@@ -626,6 +631,7 @@ public class LevelManager : NetworkBehaviour
         Cursor.visible = false; // Oculta el cursor
 
         // Cargar la escena del men� principal
+        menuManager.isGame = false;
         SceneManager.LoadScene("MenuScene"); // Cambia "MenuScene" por el nombre de tu escena principal
     }
 
