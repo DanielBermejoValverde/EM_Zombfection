@@ -40,6 +40,11 @@ public class LevelManager : NetworkBehaviour
     [SerializeField] private int minutes = 5;
 
     private List<Vector3> humanSpawnPoints = new List<Vector3>();
+
+    private HashSet<ulong> initialZombies = new();
+    private HashSet<ulong> convertedZombies = new();
+    private ulong lastHumanId = ulong.MaxValue;
+    Dictionary<ulong, string> playerResults = new Dictionary<ulong, string>();
     //private List<Vector3> zombieSpawnPoints = new List<Vector3>();
 
     public int totalCoinsCollected = 0;
@@ -65,7 +70,7 @@ public class LevelManager : NetworkBehaviour
     private bool isGameOver = false;
 
     public GameObject gameOverPanel; // Asigna el panel desde el inspector
-
+    public TextMeshProUGUI GameOverText;
     public static LevelManager Instance { get; private set; }
     #endregion
 
@@ -107,7 +112,7 @@ public class LevelManager : NetworkBehaviour
                 if (numberOfHumans == 0)
                 {
                     isGameOver = true;
-                    GameOverClientRpc();
+                    //GameOverClientRpc();
                 }
             }
         }
@@ -119,7 +124,7 @@ public class LevelManager : NetworkBehaviour
                 if (numberOfZombies == 0)
                 {
                     isGameOver = true;
-                    GameOverClientRpc();
+                    //GameOverClientRpc();
                 }
             }
         }
@@ -221,7 +226,7 @@ public class LevelManager : NetworkBehaviour
 
         if (isGameOver)
         {
-            ShowGameOverPanel();
+            GenerateGameOverResults();
         }
     }
 
@@ -264,7 +269,20 @@ public class LevelManager : NetworkBehaviour
         {
             //Comprobar si es el último humano para dar el Game Over total a ese humano
             numberOfHumans--; // Reducir el n�mero de humanos
+            if (numberOfHumans <= 0)
+            {
+                
+                lastHumanId = clientId;
+                isGameOver = true;
+            }
+            else
+            {
+                convertedZombies.Add(clientId);
+            }
         }
+        
+
+
     }
 
 
@@ -373,6 +391,12 @@ public class LevelManager : NetworkBehaviour
             SpawnPlayer(humanSpawnPoints[i],prefab, client.Key);
             Debug.Log($"Personaje jugable instanciado en {humanSpawnPoints[i]}");
             i++;
+
+            if (((int)client.Key) % 2 != 0)
+            {
+                initialZombies.Add(client.Key);
+            }
+
         }
         /*
         for (int i = 1; i < numberOfHumans; i++)
@@ -471,14 +495,113 @@ public class LevelManager : NetworkBehaviour
             if (totalCoinsCollected == CoinsGenerated)
             {
                 isGameOver = true;
-                GameOverClientRpc();
+               
             }
         }
     }
-    [ClientRpc]
-    private void GameOverClientRpc(){
-        isGameOver = true;
+    private void GenerateGameOverResults()
+    {
+        Debug.Log("ENTRAMOS ");
+
+        foreach (var player in GameObject.FindObjectsOfType<PlayerController>())
+        {
+            ulong id = player.OwnerClientId;
+            string result;
+
+            bool humansWon = false;
+            bool zombiesWon = false;
+
+            // Comprobar si los humanos ganaron (tiempo o monedas)
+            if (gameMode == GameMode.Tiempo && remainingSeconds <= 0)
+            {
+                humansWon = true;
+            }
+            else if (gameMode == GameMode.Monedas && totalCoinsCollected == CoinsGenerated)
+            {
+                humansWon = true;
+            }
+
+            // Comprobar si los humanos perdieron (no quedan humanos vivos)
+            //bool humansLost = !humansWon;
+
+            if (!player.isZombie)
+            {
+                // Jugador humano
+                if (humansWon)
+                {
+                    result = "¡Victoria Total (Humano)!";
+                }
+                else if (!humansWon)
+                {
+                    result = (id == lastHumanId) ? "¡Derrota! Fuiste el último humano." : "¡Derrota!";
+                }
+                else
+                {
+                    // La partida no ha acabado o situación no definida
+                    result = "Partida en curso...";
+                }
+            }
+            else
+            {
+                // Jugador zombie
+                if (humansWon)
+                {
+                    // Humanos ganaron, zombies perdieron
+                    result = "¡Derrota!";
+                }
+                else if (!humansWon)
+                {
+                    // Humanos perdieron, zombies ganaron parcialmente o totalmente
+                    if (initialZombies.Contains(id))
+                    {
+                        result = "¡Victoria Total (Zombi)!";
+                    }
+                    else if (convertedZombies.Contains(id))
+                    {
+                        result = "¡Victoria Parcial (Convertido)!";
+                    }
+                    else
+                    {
+                        result = "¡Derrota!";
+                    }
+                }
+                else
+                {
+                    // La partida no ha acabado o situación no definida
+                    result = "Partida en curso...";
+                }
+            }
+
+
+        GameOverClientRpc(id, result);
+        }
     }
+
+
+    [ClientRpc]
+    private void GameOverClientRpc(ulong clientId, string result)
+    {
+        if (NetworkManager.Singleton.LocalClientId == clientId)
+        {
+            ShowGameOverPanel(result);
+        }
+    }
+
+    private void ShowGameOverPanel(string message)
+    {
+        Debug.Log("generamos panel");
+        if (gameOverPanel != null)
+        {
+            Time.timeScale = 0f;
+            GameOverText.text = message;
+            gameOverPanel.SetActive(true);
+
+
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+    }
+
     [ClientRpc]
     private void UpdateCoinsUIClientRpc(int coinsCollected,int coinsGenerated){
         gameModeText.text = $"{coinsCollected}/{coinsGenerated}";
