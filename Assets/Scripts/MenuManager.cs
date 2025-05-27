@@ -3,13 +3,14 @@ using UnityEngine.SceneManagement;
 using Unity.Netcode;
 using Unity.VisualScripting;
 using UnityEngine.UI;
+using TMPro;
 
-public class MenuManager : MonoBehaviour
+public class MenuManager : NetworkBehaviour
 {
-    public GameObject lobbyUI;
     public GameObject menuUI;
-    public GameObject modeButton;
-    public GameObject readyButton;
+
+    public GameObject joinHostUI;
+    public Button modeButton;
 
     public static MenuManager self;
 
@@ -26,16 +27,19 @@ public class MenuManager : MonoBehaviour
             self = this;
             DontDestroyOnLoad(gameObject);
             SceneManager.sceneLoaded += OnSceneLoaded;
-            lobbyUI = GameObject.Find("LobbyUI");
             menuUI = GameObject.Find("MenuUI");
-            modeButton = GameObject.Find("ModeButton");
-            readyButton = GameObject.Find("ReaddyButton");
+            //joinHostUI = GameObject.Find("JoinHostUI");
         }
         else
         {
             Destroy(gameObject);
         }
     }
+    void Start()
+    {
+            joinHostUI.SetActive(false);
+    }
+
 
     public void StartGame()
     {
@@ -44,33 +48,51 @@ public class MenuManager : MonoBehaviour
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if (isGame) return;
-        lobbyUI.SetActive(true);
-        readyButton.SetActive(true);
+        joinHostUI.SetActive(true); 
     }
     public void ClearCanvas()
     {
-        lobbyUI.SetActive(false);
         menuUI.SetActive(false);
-        readyButton.SetActive(false); 
+        joinHostUI.SetActive(false); 
 
     }
     public void HostGame()
     {
-        NetworkManager.Singleton.StartHost();
-        lobbyUI.SetActive(true);
+        joinHostUI.SetActive(true); 
         menuUI.SetActive(false); 
+        NetworkManager.Singleton.StartHost();
     }
 
     public void JoinGame()
     {
-        NetworkManager.Singleton.StartClient();
-        lobbyUI.SetActive(true);
+        joinHostUI.SetActive(true); 
         menuUI.SetActive(false); 
+        NetworkManager.Singleton.StartClient();
+    }
+    
+    public void Disconnect()
+    {
+        joinHostUI.SetActive(false); 
+        menuUI.SetActive(true); 
+        NetworkManager.Singleton.Shutdown();
     }
     public void ChangeMode()
     {
-        gameMode = gameMode == GameMode.Monedas ? GameMode.Tiempo : GameMode.Monedas;
-        Debug.Log(gameMode);
+        if (!IsServer) return;
+        gameMode = gameMode == GameMode.Tiempo ? GameMode.Monedas : GameMode.Tiempo;
+        string gameModeString = gameMode == GameMode.Tiempo ? "Tiempo" : "Monedas";
+        ChangeModeClientRpc(gameModeString);
+    }
+    [ClientRpc]
+    public void ChangeModeClientRpc(string gameMode)
+    {
+        modeButton.GetComponentInChildren<TextMeshProUGUI>().text = gameMode;
+    }
+    public void ToggleLobby()
+    {
+        joinHostUI.SetActive(!joinHostUI.activeInHierarchy);
+        menuUI.SetActive(!menuUI.activeInHierarchy);
+        
     }
 
     public void QuitGame()
