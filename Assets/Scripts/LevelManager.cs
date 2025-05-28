@@ -457,29 +457,18 @@ public class LevelManager : NetworkBehaviour
 
     private void HandleTimeLimitedGameMode()
     {
-        // Implementar la l�gica para el modo de juego basado en tiempo
-        if (isGameOver) return;
+        if (isGameOver || !IsServer) return;
 
-        // Decrementar remainingSeconds basado en Time.deltaTime
         remainingSeconds -= Time.deltaTime;
-
-        // Comprobar si el tiempo ha llegado a cero
         if (remainingSeconds <= 0)
         {
-            isGameOver = true;
             remainingSeconds = 0;
+            isGameOver = true;
         }
 
-        // Convertir remainingSeconds a minutos y segundos
-        int minutesRemaining = Mathf.FloorToInt(remainingSeconds / 60);
-        int secondsRemaining = Mathf.FloorToInt(remainingSeconds % 60);
-
-        // Actualizar el texto de la interfaz de usuario
-        if (gameModeText != null)
-        {
-            gameModeText.text = $"{minutesRemaining:D2}:{secondsRemaining:D2}";
-        }
-
+        int minutes = Mathf.FloorToInt(remainingSeconds / 60);
+        int seconds = Mathf.FloorToInt(remainingSeconds % 60);
+        UpdateTimeUIClientRpc(minutes, seconds);
     }
     public void CollectCoin()
     {
@@ -610,6 +599,11 @@ public class LevelManager : NetworkBehaviour
     [ClientRpc]
     private void UpdateCoinsUIClientRpc(int coinsCollected,int coinsGenerated){
         gameModeText.text = $"{coinsCollected}/{coinsGenerated}";
+    }
+    [ClientRpc]
+    private void UpdateTimeUIClientRpc(int minutesRemaining, int secondsRemaining)
+    {
+         gameModeText.text = $"{minutesRemaining:D2}:{secondsRemaining:D2}";
     }
     private void ShowGameOverPanel()
     {
