@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Unity.Netcode;
+using UnityEngine.Events;
 
 public class PauseMenu : MonoBehaviour
 {
@@ -43,13 +44,10 @@ public class PauseMenu : MonoBehaviour
     public void QuitGame()
     {
         Time.timeScale = 1f;
-
-
-        NetworkManager.Singleton.Shutdown();
-       
-
-        // Cargar la escena del menú principal
+        // Cargar la escena del menï¿½ principal
         SceneManager.LoadScene("MenuScene");
+        GameObject.FindObjectsOfType<LevelManager>()[0].GetComponent<LevelManager>().DisconnectPlayerServerRpc(NetworkManager.Singleton.LocalClientId);     
+
     }
 
 

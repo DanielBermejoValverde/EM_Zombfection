@@ -94,10 +94,10 @@ public class LevelManager : NetworkBehaviour
 
         Time.timeScale = 1f; // Asegurarse de que el tiempo no est� detenido
 
-        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+        //NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
     }
-
-    public void OnClientDisconnected(ulong clientId)
+    [ServerRpc(RequireOwnership = false)]
+    public void DisconnectPlayerServerRpc(ulong clientId)
     {
         bool isZombie = false;
         foreach (var player in GameObject.FindObjectsOfType<PlayerController>())
@@ -133,6 +133,7 @@ public class LevelManager : NetworkBehaviour
                 }
             }
         }
+        NetworkManager.Singleton.DisconnectClient(clientId);
     }
 
 
@@ -534,6 +535,14 @@ public class LevelManager : NetworkBehaviour
                     // La partida no ha acabado o situación no definida
                     result = "Partida en curso...";
                 }
+                lock(lockZombies)
+                {
+                    if (numberOfZombies == 0)
+                    {
+                        // reescribimos result si es por abandono
+                        result = "Victoria por abandono Zombi";
+                    }
+                }
             }
             else
             {
@@ -563,6 +572,14 @@ public class LevelManager : NetworkBehaviour
                 {
                     // La partida no ha acabado o situación no definida
                     result = "Partida en curso...";
+                }
+                lock(lockHumans)
+                {
+                    if (numberOfHumans == 0)
+                    {
+                        // reescribimos result si es por abandono
+                        result = "Victoria por abandono Humano";
+                    }
                 }
             }
 
