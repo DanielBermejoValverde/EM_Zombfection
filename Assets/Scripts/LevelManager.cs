@@ -394,7 +394,7 @@ public class LevelManager : NetworkBehaviour
             {
                 numberOfZombies += ((int)client.Key) % 2 == 0 ? 0 : 1;
             }
-            SpawnPlayer(humanSpawnPoints[i],prefab, client.Key);
+            SpawnPlayer(humanSpawnPoints[i%4],prefab, client.Key);
             Debug.Log($"Personaje jugable instanciado en {humanSpawnPoints[i]}");
             i++;
 
