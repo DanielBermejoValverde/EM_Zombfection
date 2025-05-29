@@ -7,6 +7,8 @@ using UnityEngine.UI;
 public class LobbyManager : NetworkBehaviour
 {
     private Dictionary<ulong, bool> playerReadyStatus = new();
+    private Dictionary<ulong, string> playerNames = new Dictionary<ulong, string>();
+
 
     public GameObject playerLobbyPrefab;
     public GameObject canvasUI;
@@ -57,17 +59,34 @@ public class LobbyManager : NetworkBehaviour
     private void ClientConectedServerRpc(ulong playerId)
     {
         playerReadyStatus[playerId] = false;
+        playerNames[playerId] = $"Player {playerId}";
         foreach (var key in new List<ulong>(playerReadyStatus.Keys))
         {
             var value = playerReadyStatus[key];
-            ClientConectedClientRpc(key, value);
+            var name = playerNames[key];
+            ClientConectedClientRpc(key, name, value);
         }
     }
 
     [ClientRpc]
-    private void ClientConectedClientRpc(ulong playerId, bool isReady)
+    private void ClientConectedClientRpc(ulong playerId, string name,  bool isReady)
     {
         playerReadyStatus[playerId] = isReady;
+        playerNames[playerId] = name;
+        UpdateLobbyUI();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void ChangeNameServerRpc(ulong playerId, string newName)
+    {
+        playerNames[playerId] = newName;
+        ChangeNameClientRpc(playerId, newName);
+    }
+
+    [ClientRpc]
+    private void ChangeNameClientRpc(ulong playerId, string newName)
+    {
+        playerNames[playerId] = newName;
         UpdateLobbyUI();
     }
 
@@ -124,18 +143,22 @@ public class LobbyManager : NetworkBehaviour
     private void UpdateLobbyUI()
     {
         foreach (Transform child in transform)
-        {
-            if (child.GetComponent<Button>() != null)
-                continue;
-            Destroy(child.gameObject);
-        }
+            if (child.GetComponent<Button>() == null)
+                Destroy(child.gameObject);
 
-        foreach (var player in playerReadyStatus)
+        foreach (var kv in playerReadyStatus)
         {
-            GameObject playerLobby = Instantiate(playerLobbyPrefab, transform);
-            playerLobby.GetComponent<PlayerLobbyManager>().SetInfo("Player " + player.Key, player.Value);
+            ulong id = kv.Key;
+            bool ready = kv.Value;
+            string name = playerNames.ContainsKey(id)
+                ? playerNames[id]
+                : $"Player {id}";
+            var go = Instantiate(playerLobbyPrefab, transform);
+            go.GetComponent<PlayerLobbyManager>().SetInfo(id, name, ready);
+            //playerLobby.GetComponent<PlayerLobbyManager>().SetInfo("Player " + player.Key, player.Value);
         }
     }
+    
     [ClientRpc]
     public void ResetReadyClientRpc()
     {
