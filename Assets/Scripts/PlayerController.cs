@@ -131,7 +131,8 @@ public class PlayerController : NetworkBehaviour
                 }
 
                 this.cameraTransform = mainCamera.transform;
-                this.enabled = true;
+                if(GameObject.Find("CanvasUI").GetComponent<MenuManager>().isGame)
+                    this.enabled = true;
             }
             else
             {

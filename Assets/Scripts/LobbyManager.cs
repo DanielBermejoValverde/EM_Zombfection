@@ -131,7 +131,7 @@ public class LobbyManager : NetworkBehaviour
             if (ready) readyCount++;
         }
 
-        if (readyCount == playerReadyStatus.Count)
+        if (readyCount >= playerReadyStatus.Count/2 && readyCount > 1)
         {
             ResetReadyClientRpc();
             
