@@ -434,6 +434,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerLobbyPrefab: {fileID: 2597691392884287684, guid: d8bd5f96acc1e6c469727d637a0a81d7, type: 3}
   canvasUI: {fileID: 0}
+  readyButton: {fileID: 421392534}
   self: {fileID: 0}
   gameMode: 1
 --- !u!114 &369697655

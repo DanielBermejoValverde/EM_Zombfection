@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -12,7 +13,7 @@ public class LobbyManager : NetworkBehaviour
 
     public GameObject playerLobbyPrefab;
     public GameObject canvasUI;
-
+    public Button readyButton;
     public LobbyManager self;
 
     public GameMode gameMode = GameMode.Monedas;
@@ -105,7 +106,12 @@ public class LobbyManager : NetworkBehaviour
 
     public void SetPlayerReady()
     {
-        SubmitReadyServerRpc(NetworkManager.Singleton.LocalClientId, true);
+        ulong playerId = NetworkManager.Singleton.LocalClientId;
+        bool readyState = playerReadyStatus.ContainsKey(playerId) && playerReadyStatus[playerId];
+
+        SubmitReadyServerRpc(NetworkManager.Singleton.LocalClientId, !readyState);
+
+        readyButton.GetComponentInChildren<TMP_Text>().text = !readyState ? "Not Ready" : "Ready";
     }
     [ServerRpc(RequireOwnership = false)]
     private void SubmitReadyServerRpc(ulong playerId, bool isReady)
