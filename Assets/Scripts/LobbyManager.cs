@@ -44,7 +44,7 @@ public class LobbyManager : NetworkBehaviour
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        foreach (ulong key in playerReadyStatus.Keys)
+        foreach (ulong key in new List<ulong>(playerReadyStatus.Keys))
         {
             playerReadyStatus[key] = false;
         }
